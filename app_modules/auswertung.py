@@ -15,70 +15,24 @@ SUPABASE_URL = os.environ.get("SUPABASE_URL")
 SUPABASE_KEY = os.environ.get("SUPABASE_KEY")
 supabase: Client = create_client(SUPABASE_URL, SUPABASE_KEY)
 
-# --- CSS Styling (bleibt unverändert) ---
-st.markdown("""
-<style>
-/* === Google Fonts importieren === */
-@import url('https://fonts.googleapis.com/css2?family=Georama&family=Onest:wght@600&display=swap');
-
-/* === Gesamtseiten-Hintergrund in ocker === */
-.stApp {
-    background-color: #f0e68c !important;
-}
-
-/* === Headlines in Onest === */
-h1, h2, h3, .stTitle, .stMarkdown h1, .stMarkdown h2 {
-    font-family: 'Onest', sans-serif !important;
-    color: #1e1e1e;
-}
-
-/* === Fließtext in Georama === */
-html, body, .stMarkdown p, .stText, .stDataFrame, .css-18ni7ap {
-    font-family: 'Georama', sans-serif !important;
-    color: #222;
-}
-
-/* === Buttons in schwarz mit weißem Text === */
-.stButton > button {
-    background-color: #000 !important;
-    color: white !important;
-    border-radius: 8px;
-    padding: 0.5em 1em;
-    border: none;
-}
-
-.stButton > button:hover {
-    background-color: #333 !important;
-    transition: background-color 0.3s ease-in-out;
-}
-
-/* === Grüne Füllfarben z. B. für Plotly Balken/Donuts (empfohlen via Plotly) === */
-/* Das kann bei Plotly Charts nicht direkt über CSS überschrieben werden.
-   Stelle dort beim Erstellen einfach `marker_color='green'` oder ähnlich ein. */
-</style>
-""", unsafe_allow_html=True)
-
-
 # --- Hilfsfunktionen ---
 def apply_plotly_background(fig):
+    """Setzt den Hintergrund für Plotly-Diagramme."""
     fig.update_layout(
         paper_bgcolor="#f0e68c",
         plot_bgcolor="#f0e68c"
     )
     return fig
 
-# --- Datenabfrage angepasst für user_id ---
 @st.cache_data
 def fetch_data(user_id):
     """
     Holt Daten aus Supabase, gefiltert nach der user_id.
     rocks und sectors sind globale Daten, ascents sind user-spezifisch.
     """
-    # Rocks und Sectors sind wahrscheinlich global und nicht user-spezifisch
     rocks = pd.DataFrame(supabase.table("rocks").select("id, sector_id").range(0, 5000).execute().data)
     sectors = pd.DataFrame(supabase.table("sector").select("id, name").execute().data)
 
-    # Ascents werden nach der user_id gefiltert
     if user_id:
         ascents_data = supabase.table("ascents").select("route_id, gipfel_id, stil, datum, partnerin, user_id").eq("user_id", user_id).execute().data
         ascents = pd.DataFrame(ascents_data)
@@ -98,7 +52,7 @@ def main_app_auswertung():
     # Sicherstellen, dass user_id im Session State vorhanden ist
     if st.session_state.user_id is None:
         st.error("Fehler: Kein Benutzer eingeloggt. Bitte melden Sie sich über die Hauptseite an, um Ihre Statistiken zu sehen.")
-        return # Die App-Logik nicht ausführen, wenn kein User eingeloggt ist
+        return
 
     # Daten für den eingeloggten Benutzer abrufen
     rocks, ascents, sectors = fetch_data(st.session_state.user_id)
@@ -108,21 +62,19 @@ def main_app_auswertung():
         st.info("Sie haben noch keine Begehungen eingetragen. Tragen Sie Ihre erste Begehung auf der Seite 'Begehung hinzufügen' ein!")
         return
 
-    # --- Restlicher Statistik-Code (unverändert, operiert nun auf gefilterten Daten) ---
+    # --- Allgemeine Berechnungen (unverändert) ---
     total_rocks = len(rocks)
     unique_done_rocks = ascents['gipfel_id'].dropna().astype(int).unique()
     num_done_rocks = len(unique_done_rocks)
-    unique_done_routes = ascents['route_id'].dropna().astype(int).unique()
-    num_done_routes = len(unique_done_routes)
-
-    # ✅ Prozent vorher berechnen!
+    unique_done_routes = len(ascents['route_id'].dropna().astype(int).unique()) # Korrektur: unique() auf Series anwenden
+    
     percent_done = round((num_done_rocks / total_rocks) * 100, 1) if total_rocks > 0 else 0
 
     st.subheader("🔍 Überblick")
 
     ascents['datum'] = pd.to_datetime(ascents['datum'], errors='coerce')
     current_year = pd.Timestamp.now().year
-    ascents_current_year = ascents[ascents['datum'].dt.year == current_year]
+    # ascents_current_year = ascents[ascents['datum'].dt.year == current_year] # Nicht direkt verwendet, kann entfernt werden
 
     col_d1, col_d2, col_stats = st.columns([1, 2, 2])
 
@@ -174,11 +126,11 @@ def main_app_auswertung():
                 x=[row['Gipfel']],
                 orientation='h',
                 marker_color='#8CF0B4',
-                text=[f"{row['Gipfel']}  "],  # ← 2 Leerzeichen rechts
+                text=[f"{row['Gipfel']}  "],
                 textposition='inside',
                 insidetextfont=dict(
-                    family='Onest, sans-serif',  # << deine Schriftart
-                    size=24,                     # << größer für Wirkung
+                    family='Onest, sans-serif',
+                    size=24,
                     color='black'
                 ),
                 hovertemplate=f"<b>{row['Jahr']}</b><br>Gipfel: {row['Gipfel']}<extra></extra>"
@@ -303,22 +255,82 @@ def main_app_auswertung():
     )
     st.plotly_chart(apply_plotly_background(fig_bar), use_container_width=True)
 
-    st.subheader("📅 Entwicklung der Begehungen")
-    if 'datum' in ascents.columns:
-        ascents_by_month = ascents.dropna(subset=['datum']).groupby(pd.Grouper(key='datum', freq='M')).size()
-        fig_time = px.line(x=ascents_by_month.index, y=ascents_by_month.values,
-                            labels={'x': 'Monat', 'y': 'Begehungen'},
-                            title='Begehungen pro Monat')
-        st.plotly_chart(apply_plotly_background(fig_time), use_container_width=True)
+    st.subheader("📈 Entwicklung der Begehungen nach Stil")
+    if 'datum' in ascents.columns and 'stil' in ascents.columns:
+        # Sicherstellen, dass 'stil' gültige Werte hat
+        valid_styles = ["Vorstieg", "Nachstieg", "Solo"]
+        
+        fig_time_styles = go.Figure()
+        
+        for stil_name in valid_styles:
+            # Filter nach Stil und gruppieren nach Monat
+            style_ascents = ascents[ascents['stil'] == stil_name].dropna(subset=['datum'])
+            ascents_by_month_style = style_ascents.groupby(pd.Grouper(key='datum', freq='M')).size().reset_index(name='Anzahl')
+            
+            if not ascents_by_month_style.empty:
+                fig_time_styles.add_trace(go.Scatter(
+                    x=ascents_by_month_style['datum'],
+                    y=ascents_by_month_style['Anzahl'],
+                    mode='lines+markers',
+                    name=stil_name,
+                    hovertemplate=f"<b>{stil_name}</b><br>Datum: %{x|%Y-%m}<br>Begehungen: %{y}<extra></extra>"
+                ))
+        
+        fig_time_styles.update_layout(
+            title='Begehungen pro Monat nach Stil',
+            xaxis_title='Monat',
+            yaxis_title='Anzahl Begehungen',
+            hovermode="x unified" # Verbessert die Hover-Erfahrung
+        )
+        st.plotly_chart(apply_plotly_background(fig_time_styles), use_container_width=True)
+    else:
+        st.info("Nicht genügend Daten oder 'stil'-Spalte fehlt für die Stil-Entwicklung.")
+
 
     st.subheader("🤝 Kletterpartner*innen")
     if 'partnerin' in ascents.columns:
         partner_counts = ascents['partnerin'].dropna().value_counts().reset_index()
         partner_counts.columns = ['Partner*in', 'Anzahl']
-        fig_bubble = px.scatter(partner_counts, x='Partner*in', y='Anzahl', size='Anzahl',
-                                 color='Partner*in', size_max=60,
-                                 title='Häufigkeit der Kletterpartner*innen')
-        fig_bubble.update_layout(showlegend=False, xaxis={'visible': False}, yaxis_title='Anzahl Begehungen')
-        st.plotly_chart(apply_plotly_background(fig_bubble), use_container_width=True)
+        
+        # Erstelle eine Spalte für zufällige X- und Y-Koordinaten, um sie zu verteilen
+        # Dies ist eine Heuristik, um sie "freischwebend" aussehen zu lassen
+        partner_counts['rand_x'] = [i * 0.1 + (hash(p) % 100) / 1000 for i, p in enumerate(partner_counts['Partner*in'])]
+        partner_counts['rand_y'] = [i * 0.1 + (hash(p) % 100) / 1000 for i, p in enumerate(partner_counts['Partner*in'])]
+
+        fig_bubble_free = go.Figure()
+        
+        for index, row in partner_counts.iterrows():
+            fig_bubble_free.add_trace(go.Scatter(
+                x=[row['rand_x']],
+                y=[row['rand_y']],
+                mode='markers+text',
+                marker=dict(
+                    size=row['Anzahl'] * 8 + 20, # Größe basierend auf Anzahl, Mindestgröße
+                    sizemode='diameter',
+                    color=px.colors.qualitative.Plotly[index % len(px.colors.qualitative.Plotly)], # Farben für jeden Partner
+                    line=dict(width=1, color='DarkSlateGrey')
+                ),
+                text=[row['Partner*in']],
+                textposition='middle center',
+                textfont=dict(
+                    size=12 + row['Anzahl'] * 2, # Textgröße an Blasengröße anpassen
+                    color='black'
+                ),
+                name=row['Partner*in'],
+                hovertemplate=f"<b>{row['Partner*in']}</b><br>Anzahl: {row['Anzahl']}<extra></extra>"
+            ))
+
+        fig_bubble_free.update_layout(
+            title='Häufigkeit der Kletterpartner*innen',
+            xaxis=dict(showgrid=False, zeroline=False, showticklabels=False, title=''), # Achsen ausblenden
+            yaxis=dict(showgrid=False, zeroline=False, showticklabels=False, title=''), # Achsen ausblenden
+            showlegend=False,
+            hovermode="closest",
+            height=500,
+            margin=dict(l=20, r=20, t=50, b=20) # Ränder anpassen
+        )
+        st.plotly_chart(apply_plotly_background(fig_bubble_free), use_container_width=True)
+    else:
+        st.info("Nicht genügend Daten oder 'partnerin'-Spalte fehlt für die Partner-Statistik.")
 
 # Hinweis: Der if __name__ == "__main__": Block wird entfernt, da diese Datei als Modul importiert wird.
