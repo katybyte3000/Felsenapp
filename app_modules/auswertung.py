@@ -67,8 +67,11 @@ def main_app_auswertung():
     total_rocks = len(rocks)
     unique_done_rocks = ascents['gipfel_id'].dropna().astype(int).unique()
     num_done_rocks = len(unique_done_rocks)
-    unique_done_routes = len(ascents['route_id'].dropna().astype(int).unique()) 
-    num_done_routes = len(unique_done_routes)
+    
+    # Definition von unique_done_routes und num_done_routes
+    # Sicherstellen, dass unique_done_routes ein Array ist, bevor len() aufgerufen wird
+    unique_done_routes_array = ascents['route_id'].dropna().astype(int).unique() 
+    num_done_routes = len(unique_done_routes_array)
     
     percent_done = round((num_done_rocks / total_rocks) * 100, 1) if total_rocks > 0 else 0
 
@@ -289,7 +292,13 @@ def main_app_auswertung():
 
     # Berechnung der durchschnittlichen Kletterstatistik pro Jahr
     ascents_with_year = ascents.copy()
-    ascents_with_year['jahr'] = ascents_with_year['datum'].dt.year.dropna().astype(int)
+    # Sicherstellen, dass 'datum' nicht leer ist, bevor .dt.year aufgerufen wird
+    ascents_with_year = ascents_with_year.dropna(subset=['datum'])
+    if not ascents_with_year.empty:
+        ascents_with_year['jahr'] = ascents_with_year['datum'].dt.year.astype(int)
+    else:
+        st.info("Nicht genügend Daten, um eine durchschnittliche Kletterstatistik pro Jahr zu berechnen.")
+        return # Beende die Funktion hier, wenn keine Daten für die Berechnung vorhanden sind
     
     yearly_unique_gipfel = ascents_with_year.groupby('jahr')['gipfel_id'].nunique()
 
