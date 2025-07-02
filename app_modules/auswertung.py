@@ -267,14 +267,13 @@ def main_app_auswertung():
         st.info("Nicht genügend Daten oder 'datum'-Spalte fehlt für die Entwicklung der Begehungen.")
 
 
-    st.subheader("🤝 Kletterpartner*innen")
+    st.subheader("\U0001F91D Kletterpartner*innen")
     if 'partnerin' in ascents.columns:
         partner_counts = ascents['partnerin'].dropna().value_counts().reset_index()
         partner_counts.columns = ['Partner*in', 'Anzahl']
-        # Zurück zum ursprünglichen px.scatter Diagramm
         fig_bubble = px.scatter(partner_counts, x='Partner*in', y='Anzahl', size='Anzahl',
-                                 color='Partner*in', size_max=60,
-                                 title='Häufigkeit der Kletterpartner*innen')
+                                color='Partner*in', size_max=60,
+                                title='Häufigkeit der Kletterpartner*innen')
         fig_bubble.update_layout(showlegend=False, xaxis={'visible': False}, yaxis_title='Anzahl Begehungen')
         st.plotly_chart(apply_plotly_background(fig_bubble), use_container_width=True)
     else:
