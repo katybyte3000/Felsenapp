@@ -1,0 +1,31 @@
+# CSV-Dateien ignorieren
+*.csv
+scdb.json/
+# Umgebung
+.env
+*.env
+env/
+venv/
+
+# Python-Cache
+__pycache__/
+*.py[cod]
+
+# Streamlit
+.streamlit/
+streamlit_app_name.py
+
+# SQLite
+*.db
+*.sqlite*
+ 
+# Logs und Backups
+*.log
+*.bak
+*.tmp
+*~
+
+# IDEs
+.vscode/
+.idea/
+*.iml
