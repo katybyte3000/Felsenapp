@@ -192,7 +192,6 @@ def main_app_auswertung():
         """, unsafe_allow_html=True)
 
 
-    # Die Spalten col1, col2, col3 werden hier definiert und dann verwendet.
     col1, col2, col3 = st.columns(3)
 
     with col1:
