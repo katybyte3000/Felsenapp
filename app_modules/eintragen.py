@@ -4,7 +4,7 @@ import streamlit as st
 from dotenv import load_dotenv
 from supabase import create_client, Client
 
-# .env laden – robust für Seiten im "pages/"-Ordner
+# .env laden – robust für Seiten im "app_modules/"-Ordner
 # Stellt sicher, dass die .env-Datei im Hauptverzeichnis des Projekts gefunden wird
 dotenv_path = os.path.join(os.path.dirname(os.path.dirname(__file__)), ".env")
 load_dotenv(dotenv_path)
@@ -69,7 +69,6 @@ def main_app_eintragen():
     # 5. Speichern
     if submitted:
         # Überprüfen, ob ein Benutzer eingeloggt ist, bevor gespeichert wird
-        # (Obwohl dies bereits am Anfang der Funktion geprüft wird, ist es hier eine zusätzliche Sicherheit)
         if st.session_state.user_id:
             try:
                 response = supabase.table("ascents").insert({
@@ -80,7 +79,7 @@ def main_app_eintragen():
                     "stil": stil,
                     "kommentar": kommentar,
                     "bewertung": int(bewertung),
-                    "user_id": st.session_state.user_id # <<< HIER WIRD DIE USER_ID GESPEICHERT!
+                    "user_id": st.session_state.user_id
                 }).execute()
 
                 if response.data:

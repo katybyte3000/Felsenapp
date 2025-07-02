@@ -6,7 +6,7 @@ from dotenv import load_dotenv
 import plotly.graph_objects as go
 import plotly.express as px
 
-# .env laden – robust für Seiten im "pages/"-Ordner
+# .env laden – robust für Seiten im "app_modules/"-Ordner
 dotenv_path = os.path.join(os.path.dirname(os.path.dirname(__file__)), ".env")
 load_dotenv(dotenv_path)
 
@@ -79,8 +79,6 @@ def fetch_data(user_id):
     sectors = pd.DataFrame(supabase.table("sector").select("id, name").execute().data)
 
     # Ascents werden nach der user_id gefiltert
-    # Die RLS-Policy in Supabase sollte dies bereits filtern, aber eine explizite Filterung
-    # hier schadet nicht und macht die Absicht klarer.
     if user_id:
         ascents_data = supabase.table("ascents").select("route_id, gipfel_id, stil, datum, partnerin, user_id").eq("user_id", user_id).execute().data
         ascents = pd.DataFrame(ascents_data)

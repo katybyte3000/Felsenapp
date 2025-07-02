@@ -3,10 +3,11 @@ import streamlit as st
 from dotenv import load_dotenv
 from supabase import create_client, Client
 
-# Importiere die Funktionen aus deinen Seiten-Dateien
-# Stelle sicher, dass pages/eintragen.py und pages/auswertung.py existieren
-from pages.eintragen import main_app_eintragen
-from pages.auswertung import main_app_auswertung # <<< NEU: Import der Statistik-Funktion
+# Importiere die Funktionen aus deinen Modulen
+# Stelle sicher, dass app_modules/eintragen.py, app_modules/auswertung.py und app_modules/map.py existieren
+from app_modules.eintragen import main_app_eintragen
+from app_modules.auswertung import main_app_auswertung
+from app_modules.map import main_app_map # NEU: Import der Karten-Funktion
 
 # .env laden – stellt sicher, dass die .env-Datei im Hauptverzeichnis des Projekts gefunden wird
 load_dotenv()
@@ -22,9 +23,9 @@ if "user_id" not in st.session_state:
 if "user_email" not in st.session_state:
     st.session_state.user_email = None
 if "current_page" not in st.session_state:
-    st.session_state.current_page = "home" # Standardseite nach Login
+    st.session_state.current_page = "home_public" # Standardseite beim ersten Laden
 
-# --- Funktion für Login / Registrierung UI ---
+# --- Funktion für Login / Registrierung UI (im Hauptbereich) ---
 def login_register_ui():
     """Zeigt das Login- und Registrierungsformular im Hauptbereich der App an."""
     st.title("Willkommen bei Felsenapp!")
@@ -43,6 +44,7 @@ def login_register_ui():
                     response = supabase.auth.sign_in_with_password({"email": email, "password": password})
                     st.session_state.user_id = response.user.id
                     st.session_state.user_email = response.user.email
+                    st.session_state.current_page = "home_private" # Nach Login zur privaten Startseite
                     st.success(f"Willkommen, {st.session_state.user_email}!")
                     st.rerun()
                 except Exception as e:
@@ -54,12 +56,13 @@ def login_register_ui():
                     response = supabase.auth.sign_up({"email": email, "password": password})
                     st.session_state.user_id = response.user.id
                     st.session_state.user_email = response.user.email
+                    st.session_state.current_page = "home_private" # Nach Registrierung zur privaten Startseite
                     st.success(f"Benutzer {st.session_state.user_email} registriert und eingeloggt!")
                     st.rerun()
                 except Exception as e:
                     st.error(f"Registrierung fehlgeschlagen: {e}")
 
-# --- Funktion für Logout UI ---
+# --- Funktion für Logout UI (in Sidebar) ---
 def logout_ui():
     """Zeigt den Logout-Button und die E-Mail des eingeloggten Benutzers in der Sidebar an."""
     st.sidebar.markdown(f"Eingeloggt als: **{st.session_state.user_email}**")
@@ -67,43 +70,85 @@ def logout_ui():
         supabase.auth.sign_out()
         st.session_state.user_id = None
         st.session_state.user_email = None
-        st.session_state.current_page = "home" # Setze Seite zurück auf Home/Login
+        st.session_state.current_page = "home_public" # Nach Logout zur öffentlichen Startseite
         st.sidebar.success("Erfolgreich ausgeloggt.")
         st.rerun()
 
-# --- Haupt-Anwendungs-Layout nach Login ---
-def logged_in_app_layout():
-    """Zeigt das Hauptlayout der App an, wenn ein Benutzer eingeloggt ist."""
-    st.set_page_config(page_title="Felsenapp", layout="wide")
-
-    st.sidebar.title("Felsenapp Navigation")
+# --- Navigationsleiste für öffentliche Seiten (immer sichtbar) ---
+def public_navigation_ui():
+    """Zeigt Navigationsbuttons für öffentliche Seiten in der Sidebar an."""
+    st.sidebar.title("Felsenapp")
+    st.sidebar.markdown("---")
+    st.sidebar.subheader("Öffentliche Bereiche")
+    if st.sidebar.button("Home (Öffentlich)"):
+        st.session_state.current_page = "home_public"
+    if st.sidebar.button("Karte Sächsische Schweiz"): # NEU: Button für die öffentliche Karte
+        st.session_state.current_page = "map_public"
     
-    # Navigationsbuttons in der Seitenleiste direkt nach dem Titel
-    if st.sidebar.button("Home"):
-        st.session_state.current_page = "home"
+    st.sidebar.markdown("---") # Trennlinie
+
+# --- Navigationsleiste für private Seiten (nur bei Login sichtbar) ---
+def private_navigation_ui():
+    """Zeigt Navigationsbuttons für private Seiten in der Sidebar an."""
+    st.sidebar.subheader("Ihre Bereiche")
+    if st.sidebar.button("Home (Privat)"):
+        st.session_state.current_page = "home_private"
     if st.sidebar.button("Begehung hinzufügen"):
         st.session_state.current_page = "eintragen"
-    if st.sidebar.button("Statistik"): # <<< NEU: Button für Statistik
+    if st.sidebar.button("Statistik"):
         st.session_state.current_page = "statistik"
+    
+    st.sidebar.markdown("---") # Trennlinie
+    logout_ui() # Logout-Button
 
-    st.sidebar.markdown("---") # Trennlinie in der Sidebar
-    logout_ui() # Logout-Button nach den Navigationsbuttons
+# --- Haupt-App-Layout (entscheidet, was angezeigt wird) ---
+def main_app_flow():
+    st.set_page_config(page_title="Felsenapp", layout="wide")
 
-    st.markdown("---") # Trennlinie im Hauptbereich
+    # Immer die öffentliche Navigation anzeigen
+    public_navigation_ui()
 
-    # Inhalte basierend auf der ausgewählten Seite anzeigen
-    if st.session_state.current_page == "home":
-        st.header(f"Willkommen zurück, {st.session_state.user_email}!")
-        st.write("Dies ist Ihre persönliche Felsenapp-Startseite.")
-        st.write("Wählen Sie eine Option aus der Navigation in der Seitenleiste.")
-    elif st.session_state.current_page == "eintragen":
-        main_app_eintragen() # Ruft die Funktion aus pages/eintragen.py auf
-    elif st.session_state.current_page == "statistik": # <<< NEU: Aufruf der Statistik-Funktion
-        main_app_auswertung()
+    # Wenn eingeloggt, auch die private Navigation anzeigen
+    if st.session_state.user_id:
+        private_navigation_ui()
+
+    # Inhalte basierend auf der ausgewählten Seite und dem Login-Status anzeigen
+    if st.session_state.current_page == "home_public":
+        if st.session_state.user_id:
+            st.header(f"Willkommen zurück, {st.session_state.user_email}!")
+            st.write("Sie sind erfolgreich eingeloggt. Wählen Sie eine Option aus der Navigation in der Seitenleiste.")
+            st.session_state.current_page = "home_private" # Setze auf private Home, wenn eingeloggt
+            st.rerun()
+        else:
+            st.header("Willkommen bei Felsenapp!")
+            st.write("Entdecken Sie die Karte der Sächsischen Schweiz oder melden Sie sich an, um Ihre Begehungen zu verwalten.")
+            login_register_ui() # Zeigt das Login/Registrierungsformular an
+    
+    elif st.session_state.current_page == "map_public":
+        main_app_map() # Ruft die Funktion für die öffentliche Karte auf
+
+    # --- Private Seiten (nur zugänglich, wenn eingeloggt) ---
+    elif st.session_state.user_id: # Nur fortfahren, wenn ein Benutzer eingeloggt ist
+        if st.session_state.current_page == "home_private":
+            st.header(f"Willkommen zurück, {st.session_state.user_email}!")
+            st.write("Dies ist Ihre persönliche Felsenapp-Startseite.")
+            st.write("Wählen Sie eine Option aus der Navigation in der Seitenleiste.")
+        elif st.session_state.current_page == "eintragen":
+            main_app_eintragen() # Ruft die Funktion aus app_modules/eintragen.py auf
+        elif st.session_state.current_page == "statistik":
+            main_app_auswertung() # Ruft die Funktion aus app_modules/auswertung.py auf
+        else:
+            # Fallback für unbekannte private Seiten, sollte nicht vorkommen
+            st.error("Unbekannte Seite oder Zugriff verweigert. Bitte wählen Sie eine Seite aus der Navigation.")
+            st.session_state.current_page = "home_private"
+            st.rerun()
+    else:
+        # Wenn eine private Seite direkt aufgerufen wird, ohne Login
+        st.warning("Sie müssen angemeldet sein, um diesen Bereich zu sehen.")
+        st.session_state.current_page = "home_public" # Zurück zur öffentlichen Startseite
+        st.rerun()
 
 
-# --- App-Flow steuern (eingeloggt oder nicht) ---
-if st.session_state.user_id:
-    logged_in_app_layout() # Zeigt das Hauptlayout der App an
-else:
-    login_register_ui() # Zeigt Login/Registrierung an
+# --- Startpunkt der App ---
+if __name__ == "__main__":
+    main_app_flow()
