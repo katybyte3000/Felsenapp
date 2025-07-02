@@ -5,7 +5,7 @@ import os
 from dotenv import load_dotenv
 import plotly.graph_objects as go
 import plotly.express as px
-# import numpy as np # Nicht mehr benötigt, da zufällige Positionen entfernt wurden
+# import numpy as np # Nicht mehr benötigt
 
 # .env laden – robust für Seiten im "app_modules/"-Ordner
 dotenv_path = os.path.join(os.path.dirname(os.path.dirname(__file__)), ".env")
@@ -67,7 +67,8 @@ def main_app_auswertung():
     total_rocks = len(rocks)
     unique_done_rocks = ascents['gipfel_id'].dropna().astype(int).unique()
     num_done_rocks = len(unique_done_rocks)
-    unique_done_routes = len(ascents['route_id'].dropna().astype(int).unique()) 
+    # Definition von unique_done_routes und num_done_routes
+    unique_done_routes = ascents['route_id'].dropna().astype(int).unique() 
     num_done_routes = len(unique_done_routes)
     
     percent_done = round((num_done_rocks / total_rocks) * 100, 1) if total_rocks > 0 else 0
@@ -272,12 +273,16 @@ def main_app_auswertung():
     if 'partnerin' in ascents.columns:
         partner_counts = ascents['partnerin'].dropna().value_counts().reset_index()
         partner_counts.columns = ['Partner*in', 'Anzahl']
-        # Zurück zum ursprünglichen px.scatter Diagramm
-        fig_bubble = px.scatter(partner_counts, x='Partner*in', y='Anzahl', size='Anzahl',
-                                 color='Partner*in', size_max=60,
-                                 title='Häufigkeit der Kletterpartner*innen')
-        fig_bubble.update_layout(showlegend=False, xaxis={'visible': False}, yaxis_title='Anzahl Begehungen')
-        st.plotly_chart(apply_plotly_background(fig_bubble), use_container_width=True)
+        # Horizontales Balkendiagramm für Partner*innen
+        fig_partner_bar = px.bar(partner_counts, 
+                                 x='Anzahl', 
+                                 y='Partner*in', 
+                                 orientation='h',
+                                 title='Häufigkeit der Kletterpartner*innen',
+                                 color='Anzahl', # Farben nach Anzahl
+                                 color_continuous_scale=px.colors.sequential.Viridis) # Farbskala
+        fig_partner_bar.update_layout(showlegend=False, yaxis={'categoryorder':'total ascending'}) # Sortiert nach Häufigkeit
+        st.plotly_chart(apply_plotly_background(fig_partner_bar), use_container_width=True)
     else:
         st.info("Nicht genügend Daten oder 'partnerin'-Spalte fehlt für die Partner-Statistik.")
 
