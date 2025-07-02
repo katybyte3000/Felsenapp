@@ -67,8 +67,7 @@ def main_app_auswertung():
     total_rocks = len(rocks)
     unique_done_rocks = ascents['gipfel_id'].dropna().astype(int).unique()
     num_done_rocks = len(unique_done_rocks)
-    # Definition von unique_done_routes und num_done_routes
-    unique_done_routes = ascents['route_id'].dropna().astype(int).unique() 
+    unique_done_routes = len(ascents['route_id'].dropna().astype(int).unique()) 
     num_done_routes = len(unique_done_routes)
     
     percent_done = round((num_done_rocks / total_rocks) * 100, 1) if total_rocks > 0 else 0
@@ -285,5 +284,41 @@ def main_app_auswertung():
         st.plotly_chart(apply_plotly_background(fig_partner_bar), use_container_width=True)
     else:
         st.info("Nicht genügend Daten oder 'partnerin'-Spalte fehlt für die Partner-Statistik.")
+
+    st.subheader("🎯 Dein Ziel: Alle 1201 Gipfel")
+
+    # Berechnung der durchschnittlichen Kletterstatistik pro Jahr
+    ascents_with_year = ascents.copy()
+    ascents_with_year['jahr'] = ascents_with_year['datum'].dt.year.dropna().astype(int)
+    
+    yearly_unique_gipfel = ascents_with_year.groupby('jahr')['gipfel_id'].nunique()
+
+    average_yearly_peaks = 0
+    if not yearly_unique_gipfel.empty:
+        average_yearly_peaks = yearly_unique_gipfel.mean()
+        st.write(f"Durchschnittlich kletterst du **{average_yearly_peaks:.1f}** neue Gipfel pro Jahr.")
+    else:
+        st.info("Nicht genügend Daten, um eine durchschnittliche Kletterstatistik pro Jahr zu berechnen.")
+        return # Beende die Funktion hier, wenn keine Daten für die Berechnung vorhanden sind
+
+    # Verbleibende Gipfel
+    remaining_peaks = 1201 - num_done_rocks
+
+    # Berechnung der Dauer bis zum Ziel (aktuelles Tempo)
+    years_to_finish_current = "N/A"
+    if average_yearly_peaks > 0:
+        years_to_finish_current = remaining_peaks / average_yearly_peaks
+        st.write(f"Bei diesem Tempo erreichst du dein Ziel in ca. **{years_to_finish_current:.1f} Jahren**.")
+    else:
+        st.info("Um das Ziel zu erreichen, musst du zuerst Gipfel klettern!")
+
+    # Berechnung der Dauer bis zum Ziel (doppeltes Tempo)
+    years_to_finish_doubled = "N/A"
+    if average_yearly_peaks > 0:
+        years_to_finish_doubled = remaining_peaks / (average_yearly_peaks * 2)
+        st.write(f"Wenn du doppelt so viele Gipfel pro Jahr kletterst, erreichst du dein Ziel in ca. **{years_to_finish_doubled:.1f} Jahren**.")
+    else:
+        st.info("Um das Ziel zu erreichen, musst du zuerst Gipfel klettern!")
+
 
 # Hinweis: Der if __name__ == "__main__": Block wird entfernt, da diese Datei als Modul importiert wird.
