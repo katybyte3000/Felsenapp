@@ -4,10 +4,9 @@ from dotenv import load_dotenv
 from supabase import create_client, Client
 
 # Importiere die Funktionen aus deinen Modulen
-# Stelle sicher, dass app_modules/eintragen.py, app_modules/auswertung.py und app_modules/map.py existieren
 from app_modules.eintragen import main_app_eintragen
 from app_modules.auswertung import main_app_auswertung
-from app_modules.map import main_app_map # NEU: Import der Karten-Funktion
+from app_modules.map import main_app_map
 
 # .env laden – stellt sicher, dass die .env-Datei im Hauptverzeichnis des Projekts gefunden wird
 load_dotenv()
@@ -16,6 +15,52 @@ load_dotenv()
 SUPABASE_URL = os.environ.get("SUPABASE_URL")
 SUPABASE_KEY = os.environ.get("SUPABASE_KEY")
 supabase: Client = create_client(SUPABASE_URL, SUPABASE_KEY)
+
+# --- Globale Seitenkonfiguration und CSS Styling ---
+st.set_page_config(page_title="Felsenapp", layout="wide")
+
+st.markdown("""
+<style>
+/* === Google Fonts importieren === */
+@import url('https://fonts.googleapis.com/css2?family=Georama&family=Onest:wght@600&display=swap');
+
+/* === Gesamtseiten-Hintergrund in ocker === */
+.stApp {
+    background-color: #f0e68c !important;
+}
+
+/* === Headlines in Onest === */
+h1, h2, h3, .stTitle, .stMarkdown h1, .stMarkdown h2 {
+    font-family: 'Onest', sans-serif !important;
+    color: #1e1e1e;
+}
+
+/* === Fließtext in Georama === */
+html, body, .stMarkdown p, .stText, .stDataFrame, .css-18ni7ap {
+    font-family: 'Georama', sans-serif !important;
+    color: #222;
+}
+
+/* === Buttons in schwarz mit weißem Text === */
+.stButton > button {
+    background-color: #000 !important;
+    color: white !important;
+    border-radius: 8px;
+    padding: 0.5em 1em;
+    border: none;
+}
+
+.stButton > button:hover {
+    background-color: #333 !important;
+    transition: background-color 0.3s ease-in-out;
+}
+
+/* === Grüne Füllfarben z. B. für Plotly Balken/Donuts (empfohlen via Plotly) === */
+/* Das kann bei Plotly Charts nicht direkt über CSS überschrieben werden.
+   Stelle dort beim Erstellen einfach `marker_color='green'` oder ähnlich ein. */
+</style>
+""", unsafe_allow_html=True)
+
 
 # --- Session State für Benutzerinformationen und Navigation ---
 if "user_id" not in st.session_state:
@@ -82,7 +127,7 @@ def public_navigation_ui():
     st.sidebar.subheader("Öffentliche Bereiche")
     if st.sidebar.button("Home (Öffentlich)"):
         st.session_state.current_page = "home_public"
-    if st.sidebar.button("Karte Sächsische Schweiz"): # NEU: Button für die öffentliche Karte
+    if st.sidebar.button("Karte Sächsische Schweiz"):
         st.session_state.current_page = "map_public"
     
     st.sidebar.markdown("---") # Trennlinie
@@ -103,7 +148,7 @@ def private_navigation_ui():
 
 # --- Haupt-App-Layout (entscheidet, was angezeigt wird) ---
 def main_app_flow():
-    st.set_page_config(page_title="Felsenapp", layout="wide")
+    # st.set_page_config(page_title="Felsenapp", layout="wide") # Hier entfernt, da jetzt global oben
 
     # Immer die öffentliche Navigation anzeigen
     public_navigation_ui()
