@@ -5,6 +5,7 @@ import os
 from dotenv import load_dotenv
 import plotly.graph_objects as go
 import plotly.express as px
+
 st.set_page_config(page_title="Statistik", layout="wide")
 
 st.markdown("""
@@ -50,11 +51,7 @@ html, body, .stMarkdown p, .stText, .stDataFrame, .css-18ni7ap {
 """, unsafe_allow_html=True)
 
 
-
 st.title("📊 Gipfel Statistik")
-
-
-
 
 
 # .env laden
@@ -78,7 +75,6 @@ def apply_plotly_background(fig):
     )
     return fig
 
-    
 
 def app():
     rocks, ascents, sectors = fetch_data()
@@ -148,7 +144,7 @@ def app():
                 x=[row['Gipfel']],
                 orientation='h',
                 marker_color='#8CF0B4',
-                text=[f"{row['Gipfel']}  "],  # ← 2 Leerzeichen rechts
+                text=[f"{row['Gipfel']}  "],  # ← 2 Leerzeichen rechts
                 textposition='inside',
                 insidetextfont=dict(
                     family='Onest, sans-serif',  # << deine Schriftart
@@ -215,7 +211,7 @@ def app():
     col1, col2, col3 = st.columns(3)
 
     with col1:
-        st.metric("\U0001F9D7 Begangene Routen", f"{num_done_routes}")
+        st.metric("🧗 Begangene Routen", f"{num_done_routes}")
 
     with col2:
         fig = go.Figure(go.Indicator(
@@ -244,7 +240,7 @@ def app():
             fig_pie.update_layout(title_text="Verteilung der Stile")
             st.plotly_chart(apply_plotly_background(fig_pie), use_container_width=True)
 
-    st.subheader("\U0001F4CC Übersicht pro Gebiet")
+    st.subheader("🗺️ Übersicht pro Gebiet")
 
     rocks['done'] = rocks['id'].isin(unique_done_rocks)
     sector_stats = rocks.groupby('sector_id')['done'].agg(['sum', 'count']).reset_index()
@@ -281,20 +277,19 @@ def app():
     if 'datum' in ascents.columns:
         ascents_by_month = ascents.dropna(subset=['datum']).groupby(pd.Grouper(key='datum', freq='M')).size()
         fig_time = px.line(x=ascents_by_month.index, y=ascents_by_month.values,
-                           labels={'x': 'Monat', 'y': 'Begehungen'},
-                           title='Begehungen pro Monat')
+                            labels={'x': 'Monat', 'y': 'Begehungen'},
+                            title='Begehungen pro Monat')
         st.plotly_chart(apply_plotly_background(fig_time), use_container_width=True)
 
-    st.subheader("\U0001F91D Kletterpartner*innen")
+    st.subheader("🤝 Kletterpartner*innen")
     if 'partnerin' in ascents.columns:
         partner_counts = ascents['partnerin'].dropna().value_counts().reset_index()
         partner_counts.columns = ['Partner*in', 'Anzahl']
         fig_bubble = px.scatter(partner_counts, x='Partner*in', y='Anzahl', size='Anzahl',
-                                color='Partner*in', size_max=60,
-                                title='Häufigkeit der Kletterpartner*innen')
+                                 color='Partner*in', size_max=60,
+                                 title='Häufigkeit der Kletterpartner*innen')
         fig_bubble.update_layout(showlegend=False, xaxis={'visible': False}, yaxis_title='Anzahl Begehungen')
         st.plotly_chart(apply_plotly_background(fig_bubble), use_container_width=True)
-
 
 
 if __name__ == "__main__":
