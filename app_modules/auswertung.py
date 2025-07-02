@@ -5,7 +5,7 @@ import os
 from dotenv import load_dotenv
 import plotly.graph_objects as go
 import plotly.express as px
-import numpy as np # NEU: Import von numpy für zufällige Zahlen
+# import numpy as np # Nicht mehr benötigt, da zufällige Positionen entfernt wurden
 
 # .env laden – robust für Seiten im "app_modules/"-Ordner
 dotenv_path = os.path.join(os.path.dirname(os.path.dirname(__file__)), ".env")
@@ -67,8 +67,7 @@ def main_app_auswertung():
     total_rocks = len(rocks)
     unique_done_rocks = ascents['gipfel_id'].dropna().astype(int).unique()
     num_done_rocks = len(unique_done_rocks)
-    # Definition von num_done_routes
-    unique_done_routes = ascents['route_id'].dropna().astype(int).unique() 
+    unique_done_routes = len(ascents['route_id'].dropna().astype(int).unique()) 
     num_done_routes = len(unique_done_routes)
     
     percent_done = round((num_done_rocks / total_rocks) * 100, 1) if total_rocks > 0 else 0
@@ -257,81 +256,27 @@ def main_app_auswertung():
     )
     st.plotly_chart(apply_plotly_background(fig_bar), use_container_width=True)
 
-    st.subheader("📈 Entwicklung der Begehungen nach Stil")
-    if 'datum' in ascents.columns and 'stil' in ascents.columns:
-        valid_styles = ["Vorstieg", "Nachstieg", "Solo"]
-        
-        fig_time_styles = go.Figure()
-        
-        for stil_name in valid_styles:
-            style_ascents = ascents[ascents['stil'] == stil_name].dropna(subset=['datum'])
-            ascents_by_month_style = style_ascents.groupby(pd.Grouper(key='datum', freq='M')).size().reset_index(name='Anzahl')
-            
-            if not ascents_by_month_style.empty:
-                fig_time_styles.add_trace(go.Scatter(
-                    x=ascents_by_month_style['datum'],
-                    y=ascents_by_month_style['Anzahl'],
-                    mode='lines+markers',
-                    name=stil_name,
-                    hovertemplate=f"<b>{stil_name}</b><br>Datum: %{{x|%Y-%m}}<br>Begehungen: %{{y}}<extra></extra>"
-                ))
-        
-        fig_time_styles.update_layout(
-            title='Begehungen pro Monat nach Stil',
-            xaxis_title='Monat',
-            yaxis_title='Anzahl Begehungen',
-            hovermode="x unified"
-        )
-        st.plotly_chart(apply_plotly_background(fig_time_styles), use_container_width=True)
+    st.subheader("📅 Entwicklung der Begehungen") # Zurück zum ursprünglichen Titel
+    if 'datum' in ascents.columns:
+        ascents_by_month = ascents.dropna(subset=['datum']).groupby(pd.Grouper(key='datum', freq='M')).size()
+        fig_time = px.line(x=ascents_by_month.index, y=ascents_by_month.values,
+                            labels={'x': 'Monat', 'y': 'Begehungen'},
+                            title='Begehungen pro Monat')
+        st.plotly_chart(apply_plotly_background(fig_time), use_container_width=True)
     else:
-        st.info("Nicht genügend Daten oder 'stil'-Spalte fehlt für die Stil-Entwicklung.")
+        st.info("Nicht genügend Daten oder 'datum'-Spalte fehlt für die Entwicklung der Begehungen.")
 
 
     st.subheader("🤝 Kletterpartner*innen")
     if 'partnerin' in ascents.columns:
         partner_counts = ascents['partnerin'].dropna().value_counts().reset_index()
         partner_counts.columns = ['Partner*in', 'Anzahl']
-        
-        # Erstelle Spalten für zufällige X- und Y-Koordinaten für eine bessere Streuung
-        # Die Skalierung (z.B. * 10) kann angepasst werden, um die Dichte zu steuern.
-        # Je größer der Multiplikator, desto weiter auseinander sind die Bubbles.
-        partner_counts['rand_x'] = np.random.rand(len(partner_counts)) * 10 
-        partner_counts['rand_y'] = np.random.rand(len(partner_counts)) * 10 
-
-        fig_bubble_free = go.Figure()
-        
-        for index, row in partner_counts.iterrows():
-            fig_bubble_free.add_trace(go.Scatter(
-                x=[row['rand_x']],
-                y=[row['rand_y']],
-                mode='markers+text',
-                marker=dict(
-                    size=row['Anzahl'] * 8 + 20, # Größe basierend auf Anzahl, Mindestgröße
-                    sizemode='diameter',
-                    color=px.colors.qualitative.Plotly[index % len(px.colors.qualitative.Plotly)], # Farben für jeden Partner
-                    line=dict(width=1, color='DarkSlateGrey')
-                ),
-                text=[row['Partner*in']],
-                textposition='middle center',
-                textfont=dict(
-                    size=12 + row['Anzahl'] * 2, # Textgröße an Blasengröße anpassen
-                    color='black'
-                ),
-                name=row['Partner*in'],
-                hovertemplate=f"<b>{row['Partner*in']}</b><br>Anzahl: %{{Anzahl}}<extra></extra>"
-            ))
-
-        fig_bubble_free.update_layout(
-            title='Häufigkeit der Kletterpartner*innen',
-            # Achsen ausblenden und den Bereich festlegen, in dem die Bubbles schweben
-            xaxis=dict(showgrid=False, zeroline=False, showticklabels=False, title='', range=[0, 10]), 
-            yaxis=dict(showgrid=False, zeroline=False, showticklabels=False, title='', range=[0, 10]), 
-            showlegend=False,
-            hovermode="closest",
-            height=500,
-            margin=dict(l=20, r=20, t=50, b=20)
-        )
-        st.plotly_chart(apply_plotly_background(fig_bubble_free), use_container_width=True)
+        # Zurück zum ursprünglichen px.scatter Diagramm
+        fig_bubble = px.scatter(partner_counts, x='Partner*in', y='Anzahl', size='Anzahl',
+                                 color='Partner*in', size_max=60,
+                                 title='Häufigkeit der Kletterpartner*innen')
+        fig_bubble.update_layout(showlegend=False, xaxis={'visible': False}, yaxis_title='Anzahl Begehungen')
+        st.plotly_chart(apply_plotly_background(fig_bubble), use_container_width=True)
     else:
         st.info("Nicht genügend Daten oder 'partnerin'-Spalte fehlt für die Partner-Statistik.")
 
