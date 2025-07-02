@@ -62,11 +62,13 @@ def main_app_auswertung():
         st.info("Sie haben noch keine Begehungen eingetragen. Tragen Sie Ihre erste Begehung auf der Seite 'Begehung hinzufügen' ein!")
         return
 
-    # --- Allgemeine Berechnungen (unverändert) ---
+    # --- Allgemeine Berechnungen ---
     total_rocks = len(rocks)
     unique_done_rocks = ascents['gipfel_id'].dropna().astype(int).unique()
     num_done_rocks = len(unique_done_rocks)
-    unique_done_routes = len(ascents['route_id'].dropna().astype(int).unique()) 
+    # Definition von num_done_routes
+    unique_done_routes = ascents['route_id'].dropna().astype(int).unique() 
+    num_done_routes = len(unique_done_routes)
     
     percent_done = round((num_done_rocks / total_rocks) * 100, 1) if total_rocks > 0 else 0
 
@@ -189,7 +191,7 @@ def main_app_auswertung():
         """, unsafe_allow_html=True)
 
 
-    col1, col2, col3 = st.columns(3)
+    col1, col2, col3 = st.columns(3) # Die Definition von col1, col2, col3 ist hier!
 
     with col1:
         st.metric("🧗 Begangene Routen", f"{num_done_routes}")
@@ -272,7 +274,7 @@ def main_app_auswertung():
                     y=ascents_by_month_style['Anzahl'],
                     mode='lines+markers',
                     name=stil_name,
-                    hovertemplate=f"<b>{stil_name}</b><br>Datum: %{x|%Y-%m}<br>Begehungen: %{y}<extra></extra>"
+                    hovertemplate=f"<b>{stil_name}</b><br>Datum: %{{x|%Y-%m}}<br>Begehungen: %{{y}}<extra></extra>"
                 ))
         
         fig_time_styles.update_layout(
@@ -316,7 +318,7 @@ def main_app_auswertung():
                     color='black'
                 ),
                 name=row['Partner*in'],
-                hovertemplate=f"<b>{row['Partner*in']}</b><br>Anzahl: {row['Anzahl']}<extra></extra>"
+                hovertemplate=f"<b>{row['Partner*in']}</b><br>Anzahl: %{{Anzahl}}<extra></extra>"
             ))
 
         fig_bubble_free.update_layout(
