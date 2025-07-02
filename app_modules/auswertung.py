@@ -66,7 +66,7 @@ def main_app_auswertung():
     total_rocks = len(rocks)
     unique_done_rocks = ascents['gipfel_id'].dropna().astype(int).unique()
     num_done_rocks = len(unique_done_rocks)
-    unique_done_routes = len(ascents['route_id'].dropna().astype(int).unique()) # Korrektur: unique() auf Series anwenden
+    unique_done_routes = len(ascents['route_id'].dropna().astype(int).unique()) 
     
     percent_done = round((num_done_rocks / total_rocks) * 100, 1) if total_rocks > 0 else 0
 
@@ -74,7 +74,6 @@ def main_app_auswertung():
 
     ascents['datum'] = pd.to_datetime(ascents['datum'], errors='coerce')
     current_year = pd.Timestamp.now().year
-    # ascents_current_year = ascents[ascents['datum'].dt.year == current_year] # Nicht direkt verwendet, kann entfernt werden
 
     col_d1, col_d2, col_stats = st.columns([1, 2, 2])
 
@@ -129,7 +128,7 @@ def main_app_auswertung():
                 text=[f"{row['Gipfel']}  "],
                 textposition='inside',
                 insidetextfont=dict(
-                    family='Onest, sans-serif',
+                    family='Onest',
                     size=24,
                     color='black'
                 ),
