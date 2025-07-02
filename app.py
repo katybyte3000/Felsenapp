@@ -3,9 +3,10 @@ import streamlit as st
 from dotenv import load_dotenv
 from supabase import create_client, Client
 
-# Importiere die Funktion aus deiner eintragen.py Datei
-# Stelle sicher, dass pages/eintragen.py existiert und die Funktion main_app_eintragen enthält
+# Importiere die Funktionen aus deinen Seiten-Dateien
+# Stelle sicher, dass pages/eintragen.py und pages/auswertung.py existieren
 from pages.eintragen import main_app_eintragen
+from pages.auswertung import main_app_auswertung # <<< NEU: Import der Statistik-Funktion
 
 # .env laden – stellt sicher, dass die .env-Datei im Hauptverzeichnis des Projekts gefunden wird
 load_dotenv()
@@ -39,28 +40,22 @@ def login_register_ui():
         with col1:
             if st.button("Login", use_container_width=True):
                 try:
-                    # Versucht, den Benutzer mit E-Mail und Passwort anzumelden
                     response = supabase.auth.sign_in_with_password({"email": email, "password": password})
-                    
-                    # Wenn erfolgreich, Benutzer-ID und E-Mail im Session State speichern
                     st.session_state.user_id = response.user.id
                     st.session_state.user_email = response.user.email
                     st.success(f"Willkommen, {st.session_state.user_email}!")
-                    st.rerun() # Seite neu laden, um die Haupt-App anzuzeigen
+                    st.rerun()
                 except Exception as e:
                     st.error(f"Login fehlgeschlagen: {e}")
 
         with col2:
             if st.button("Registrieren", use_container_width=True):
                 try:
-                    # Versucht, einen neuen Benutzer zu registrieren
                     response = supabase.auth.sign_up({"email": email, "password": password})
-                    
-                    # Wenn erfolgreich, Benutzer-ID und E-Mail im Session State speichern
                     st.session_state.user_id = response.user.id
                     st.session_state.user_email = response.user.email
                     st.success(f"Benutzer {st.session_state.user_email} registriert und eingeloggt!")
-                    st.rerun() # Seite neu laden
+                    st.rerun()
                 except Exception as e:
                     st.error(f"Registrierung fehlgeschlagen: {e}")
 
@@ -82,17 +77,17 @@ def logged_in_app_layout():
     st.set_page_config(page_title="Felsenapp", layout="wide")
 
     st.sidebar.title("Felsenapp Navigation")
-    logout_ui() # Logout-Button in der Sidebar
-
-    st.sidebar.markdown("---")
-    # Navigationsbuttons in der Seitenleiste
+    
+    # Navigationsbuttons in der Seitenleiste direkt nach dem Titel
     if st.sidebar.button("Home"):
         st.session_state.current_page = "home"
     if st.sidebar.button("Begehung hinzufügen"):
         st.session_state.current_page = "eintragen"
-    # Hier könnten weitere Navigationsbuttons für andere Seiten sein, z.B. Statistik
-    # if st.sidebar.button("Statistik"):
-    #     st.session_state.current_page = "statistik"
+    if st.sidebar.button("Statistik"): # <<< NEU: Button für Statistik
+        st.session_state.current_page = "statistik"
+
+    st.sidebar.markdown("---") # Trennlinie in der Sidebar
+    logout_ui() # Logout-Button nach den Navigationsbuttons
 
     st.markdown("---") # Trennlinie im Hauptbereich
 
@@ -102,10 +97,9 @@ def logged_in_app_layout():
         st.write("Dies ist Ihre persönliche Felsenapp-Startseite.")
         st.write("Wählen Sie eine Option aus der Navigation in der Seitenleiste.")
     elif st.session_state.current_page == "eintragen":
-        main_app_eintragen() # <<< HIER WIRD DIE FUNKTION AUS eintragen.py AUFGERUFEN!
-    # elif st.session_state.current_page == "statistik":
-    #     # Hier würde die Funktion für die Statistik-Seite aufgerufen werden
-    #     st.write("Statistik-Seite kommt hierher.")
+        main_app_eintragen() # Ruft die Funktion aus pages/eintragen.py auf
+    elif st.session_state.current_page == "statistik": # <<< NEU: Aufruf der Statistik-Funktion
+        main_app_auswertung()
 
 
 # --- App-Flow steuern (eingeloggt oder nicht) ---

@@ -6,8 +6,16 @@ from dotenv import load_dotenv
 import plotly.graph_objects as go
 import plotly.express as px
 
-st.set_page_config(page_title="Statistik", layout="wide")
+# .env laden – robust für Seiten im "pages/"-Ordner
+dotenv_path = os.path.join(os.path.dirname(os.path.dirname(__file__)), ".env")
+load_dotenv(dotenv_path)
 
+# Supabase-Verbindung
+SUPABASE_URL = os.environ.get("SUPABASE_URL")
+SUPABASE_KEY = os.environ.get("SUPABASE_KEY")
+supabase: Client = create_client(SUPABASE_URL, SUPABASE_KEY)
+
+# --- CSS Styling (bleibt unverändert) ---
 st.markdown("""
 <style>
 /* === Google Fonts importieren === */
@@ -51,23 +59,7 @@ html, body, .stMarkdown p, .stText, .stDataFrame, .css-18ni7ap {
 """, unsafe_allow_html=True)
 
 
-st.title("📊 Gipfel Statistik")
-
-
-# .env laden
-load_dotenv()
-url = os.getenv("SUPABASE_URL")
-key = os.getenv("SUPABASE_KEY")
-
-supabase: Client = create_client(url, key)
-
-@st.cache_data
-def fetch_data():
-    rocks = pd.DataFrame(supabase.table("rocks").select("id, sector_id").range(0, 5000).execute().data)
-    ascents = pd.DataFrame(supabase.table("ascents").select("route_id, gipfel_id, stil, datum, partnerin").execute().data)
-    sectors = pd.DataFrame(supabase.table("sector").select("id, name").execute().data)
-    return rocks, ascents, sectors
-
+# --- Hilfsfunktionen ---
 def apply_plotly_background(fig):
     fig.update_layout(
         paper_bgcolor="#f0e68c",
@@ -75,10 +67,50 @@ def apply_plotly_background(fig):
     )
     return fig
 
+# --- Datenabfrage angepasst für user_id ---
+@st.cache_data
+def fetch_data(user_id):
+    """
+    Holt Daten aus Supabase, gefiltert nach der user_id.
+    rocks und sectors sind globale Daten, ascents sind user-spezifisch.
+    """
+    # Rocks und Sectors sind wahrscheinlich global und nicht user-spezifisch
+    rocks = pd.DataFrame(supabase.table("rocks").select("id, sector_id").range(0, 5000).execute().data)
+    sectors = pd.DataFrame(supabase.table("sector").select("id, name").execute().data)
 
-def app():
-    rocks, ascents, sectors = fetch_data()
+    # Ascents werden nach der user_id gefiltert
+    # Die RLS-Policy in Supabase sollte dies bereits filtern, aber eine explizite Filterung
+    # hier schadet nicht und macht die Absicht klarer.
+    if user_id:
+        ascents_data = supabase.table("ascents").select("route_id, gipfel_id, stil, datum, partnerin, user_id").eq("user_id", user_id).execute().data
+        ascents = pd.DataFrame(ascents_data)
+    else:
+        ascents = pd.DataFrame() # Leerer DataFrame, wenn kein User eingeloggt ist
 
+    return rocks, ascents, sectors
+
+# --- Hauptfunktion für die Statistikseite ---
+def main_app_auswertung():
+    """
+    Zeigt die Statistikseite der Anwendung an.
+    Wird von app.py aufgerufen, wenn der Benutzer eingeloggt ist.
+    """
+    st.title("📊 Gipfel Statistik")
+
+    # Sicherstellen, dass user_id im Session State vorhanden ist
+    if st.session_state.user_id is None:
+        st.error("Fehler: Kein Benutzer eingeloggt. Bitte melden Sie sich über die Hauptseite an, um Ihre Statistiken zu sehen.")
+        return # Die App-Logik nicht ausführen, wenn kein User eingeloggt ist
+
+    # Daten für den eingeloggten Benutzer abrufen
+    rocks, ascents, sectors = fetch_data(st.session_state.user_id)
+
+    # Wenn keine Begehungen für den User vorhanden sind
+    if ascents.empty:
+        st.info("Sie haben noch keine Begehungen eingetragen. Tragen Sie Ihre erste Begehung auf der Seite 'Begehung hinzufügen' ein!")
+        return
+
+    # --- Restlicher Statistik-Code (unverändert, operiert nun auf gefilterten Daten) ---
     total_rocks = len(rocks)
     unique_done_rocks = ascents['gipfel_id'].dropna().astype(int).unique()
     num_done_rocks = len(unique_done_rocks)
@@ -291,6 +323,4 @@ def app():
         fig_bubble.update_layout(showlegend=False, xaxis={'visible': False}, yaxis_title='Anzahl Begehungen')
         st.plotly_chart(apply_plotly_background(fig_bubble), use_container_width=True)
 
-
-if __name__ == "__main__":
-    app()
+# Hinweis: Der if __name__ == "__main__": Block wird entfernt, da diese Datei als Modul importiert wird.
