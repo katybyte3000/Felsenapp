@@ -5,6 +5,7 @@ import os
 from dotenv import load_dotenv
 import plotly.graph_objects as go
 import plotly.express as px
+import numpy as np # NEU: Import von numpy für zufällige Zahlen
 
 # .env laden – robust für Seiten im "app_modules/"-Ordner
 dotenv_path = os.path.join(os.path.dirname(os.path.dirname(__file__)), ".env")
@@ -191,7 +192,7 @@ def main_app_auswertung():
         """, unsafe_allow_html=True)
 
 
-    col1, col2, col3 = st.columns(3) # Die Definition von col1, col2, col3 ist hier!
+    col1, col2, col3 = st.columns(3)
 
     with col1:
         st.metric("🧗 Begangene Routen", f"{num_done_routes}")
@@ -258,13 +259,11 @@ def main_app_auswertung():
 
     st.subheader("📈 Entwicklung der Begehungen nach Stil")
     if 'datum' in ascents.columns and 'stil' in ascents.columns:
-        # Sicherstellen, dass 'stil' gültige Werte hat
         valid_styles = ["Vorstieg", "Nachstieg", "Solo"]
         
         fig_time_styles = go.Figure()
         
         for stil_name in valid_styles:
-            # Filter nach Stil und gruppieren nach Monat
             style_ascents = ascents[ascents['stil'] == stil_name].dropna(subset=['datum'])
             ascents_by_month_style = style_ascents.groupby(pd.Grouper(key='datum', freq='M')).size().reset_index(name='Anzahl')
             
@@ -281,7 +280,7 @@ def main_app_auswertung():
             title='Begehungen pro Monat nach Stil',
             xaxis_title='Monat',
             yaxis_title='Anzahl Begehungen',
-            hovermode="x unified" # Verbessert die Hover-Erfahrung
+            hovermode="x unified"
         )
         st.plotly_chart(apply_plotly_background(fig_time_styles), use_container_width=True)
     else:
@@ -293,10 +292,11 @@ def main_app_auswertung():
         partner_counts = ascents['partnerin'].dropna().value_counts().reset_index()
         partner_counts.columns = ['Partner*in', 'Anzahl']
         
-        # Erstelle eine Spalte für zufällige X- und Y-Koordinaten, um sie zu verteilen
-        # Dies ist eine Heuristik, um sie "freischwebend" aussehen zu lassen
-        partner_counts['rand_x'] = [i * 0.1 + (hash(p) % 100) / 1000 for i, p in enumerate(partner_counts['Partner*in'])]
-        partner_counts['rand_y'] = [i * 0.1 + (hash(p) % 100) / 1000 for i, p in enumerate(partner_counts['Partner*in'])]
+        # Erstelle Spalten für zufällige X- und Y-Koordinaten für eine bessere Streuung
+        # Die Skalierung (z.B. * 10) kann angepasst werden, um die Dichte zu steuern.
+        # Je größer der Multiplikator, desto weiter auseinander sind die Bubbles.
+        partner_counts['rand_x'] = np.random.rand(len(partner_counts)) * 10 
+        partner_counts['rand_y'] = np.random.rand(len(partner_counts)) * 10 
 
         fig_bubble_free = go.Figure()
         
@@ -323,12 +323,13 @@ def main_app_auswertung():
 
         fig_bubble_free.update_layout(
             title='Häufigkeit der Kletterpartner*innen',
-            xaxis=dict(showgrid=False, zeroline=False, showticklabels=False, title=''), # Achsen ausblenden
-            yaxis=dict(showgrid=False, zeroline=False, showticklabels=False, title=''), # Achsen ausblenden
+            # Achsen ausblenden und den Bereich festlegen, in dem die Bubbles schweben
+            xaxis=dict(showgrid=False, zeroline=False, showticklabels=False, title='', range=[0, 10]), 
+            yaxis=dict(showgrid=False, zeroline=False, showticklabels=False, title='', range=[0, 10]), 
             showlegend=False,
             hovermode="closest",
             height=500,
-            margin=dict(l=20, r=20, t=50, b=20) # Ränder anpassen
+            margin=dict(l=20, r=20, t=50, b=20)
         )
         st.plotly_chart(apply_plotly_background(fig_bubble_free), use_container_width=True)
     else:
