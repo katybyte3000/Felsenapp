@@ -185,7 +185,7 @@ def main_app_auswertung():
     # === STATISTIK-KÄSTCHEN stilisiert ===
     with col_stats:
         top_partner = ascents['partnerin'].dropna().mode()
-        top_partner_name = top_partner.iloc[0].upper() if not top_partner.empty else "KEINE DATEN"
+        top_partner_name = top_partner.iloc[0] if not top_partner.empty else "KEINE DATEN"
 
         if not ascents['gipfel_id'].dropna().empty:
             top_berg_id = ascents['gipfel_id'].dropna().astype(int).mode().iloc[0]
@@ -218,7 +218,7 @@ def main_app_auswertung():
 
         st.markdown("""
         <div style='line-height:1.2; margin-top:1em'>
-            <span style='font-size:18px; color:#444'>Begangene Begehungen</span><br>
+            <span style='font-size:18px; color:#444'>Begangene Routen</span><br>
             <span style='font-size:46px; font-weight:700;'>""" + str(total_routes_done) + """</span>
         </div>
         """, unsafe_allow_html=True)
