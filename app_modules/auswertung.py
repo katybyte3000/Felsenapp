@@ -127,7 +127,7 @@ def main_app_auswertung():
 
         for i, row in df_years.iterrows():
             fig_years.add_trace(go.Bar(
-                y=[str(row['Jahr'])],
+                y=[str(int(row['Jahr']))],
                 x=[row['Gipfel']],
                 orientation='h',
                 marker_color='#8CF0B4',
