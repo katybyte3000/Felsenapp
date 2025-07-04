@@ -13,7 +13,7 @@ SUPABASE_URL = os.environ.get("SUPABASE_URL")
 SUPABASE_KEY = os.environ.get("SUPABASE_KEY")
 supabase = create_client(SUPABASE_URL, SUPABASE_KEY)
 
-st.title("🧗 Begehung hinzufügen")
+st.title(" Begehung hinzufügen")
 
 # 1. Sektoren laden
 sectors = supabase.table("sector").select("id, name").execute().data
