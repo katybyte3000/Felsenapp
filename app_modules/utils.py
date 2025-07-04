@@ -70,6 +70,6 @@ def display_last_climbed_rocks(supabase: Client, user_id: str, num_rocks: int = 
 
     if last_climbs:
         for i, rock in enumerate(last_climbs):
-            st.markdown(f"- **{rock['name']}** (ID: {rock['gipfel_id']})")
+            st.markdown(f"- <span style='font-size: 20px; font-weight: bold;'>{rock['name']}</span> <span style='font-size: 22px; color: grey;'>(ID: {rock['gipfel_id']})</span>", unsafe_allow_html=True)
     else:
         st.info("Noch keine Gipfel bestiegen oder keine Daten gefunden.")
