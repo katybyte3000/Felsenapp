@@ -375,7 +375,8 @@ def logout_ui():
 # --- Navigationsleiste für öffentliche Seiten (immer sichtbar) ---
 def public_navigation_ui():
     # Logo in der Seitenleiste
-    st.sidebar.image("felsenapplogo.png", use_column_width=True)
+    # use_column_width durch use_container_width ersetzt
+    st.sidebar.image("felsenapplogo.png", use_container_width=True)
 
     st.sidebar.markdown(f"""
         <div style="background-color: {HIGHLIGHT_COLOR}; padding: 1rem; border-radius: 8px 8px 0 0; text-align: center; margin-bottom: 10px;">
