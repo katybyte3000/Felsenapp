@@ -18,7 +18,7 @@ supabase: Client = create_client(SUPABASE_URL, SUPABASE_KEY)
 # Diese Funktion wird nun von app.py aufgerufen, wenn der Benutzer eingeloggt ist
 def main_app_eintragen():
     """Enthält die Hauptlogik der Anwendung zum Hinzufügen von Begehungen."""
-    st.title("🧗 Begehung hinzufügen")
+    st.title(" Begehung hinzufügen")
 
     # Sicherstellen, dass user_id im Session State vorhanden ist
     # Dies sollte von app.py gesetzt werden, nachdem sich ein Benutzer angemeldet hat.
