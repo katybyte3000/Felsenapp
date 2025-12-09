@@ -80,9 +80,9 @@ h1, h2, h3, .stTitle, .stMarkdown h1, .stMarkdown h2, .stMarkdown h3,
 
 
 /* Metric-Werte / Labels */
-[data-testid="stMetricValue"], [data-testid="stMetricLabel"] {
+[data-testid="stMetricValue"], [data-testid="stMetricLabel"] {{
     color: #111111 !important;
-}
+}}
 </style>
 
 /* === Fließtext in Noto Sans Bold === */
