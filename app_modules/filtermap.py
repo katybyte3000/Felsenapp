@@ -95,7 +95,7 @@ def show_filter_map_page(supabase_client: Client):
     <style>
     /* === Sidebar Hintergrund + Textfarben === */
 [data-testid="stSidebar"] {{
-    background-color: #6C8EBF !important;  /* helles Blau-Grau */
+    background-color: #a6a6a6 !important;  /* helles Blau-Grau */
     color: #FFFFFF !important;
 }}
 
