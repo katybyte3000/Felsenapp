@@ -15,14 +15,20 @@ SUPABASE_URL = os.environ.get("SUPABASE_URL")
 SUPABASE_KEY = os.environ.get("SUPABASE_KEY")
 supabase: Client = create_client(SUPABASE_URL, SUPABASE_KEY)
 
-# --- NEUE FARBKONZEPT KONSTANTEN (Müssen mit app.py übereinstimmen) ---
-PLOT_BG_COLOR = "#FFEF16"      # Hellgelb
-PLOT_HIGHLIGHT_COLOR = "#006D77"   # Petrol (Hauptfarbe, z.B. für Vorstieg)
-PLOT_POSITIVE_COLOR = "#3BB273"    # Grün
-PLOT_NEGATIVE_COLOR = "#8E44AD"    # Lila (wird jetzt weniger verwendet)
-PLOT_SECONDARY_COLOR = "#83C5BE"   # Helles Petrol (für Nachstieg und sekundäre Elemente)
-PLOT_TEXT_COLOR = "#1D1D1D"        # Dunkelgrau
-PLOT_OUTLINE_COLOR = "#1D1D1D"     # Dunkelgrau (für Plotly-Element-Outlines)
+# --- ✅ FINALES PLOT-FARBSCHEMA (PASSEND ZU app.py, WCAG-OPTIMIERT) ---
+
+# === MARKENFARBEN ===
+PLOT_HIGHLIGHT_COLOR = "#359bca"     # Primärakzent – Cyan (Vorstieg, Highlights)
+PLOT_SECONDARY_COLOR = "#9bca35"     # Sekundärakzent – Limette (Nachstieg)
+PLOT_NEGATIVE_COLOR = "#ca359b"      # Negativ/Kritisch – Magenta
+PLOT_BG_COLOR = "#F7F7F7"            # Neutraler Hintergrund – Hellgrau
+
+# === TEXT & KONTRASTE ===
+PLOT_TEXT_COLOR = "#111111"          # Maximaler Kontrast auf Hellgrau
+PLOT_MUTED_TEXT = "#4D4D4D"          # Gedämpfter Text (optional)
+PLOT_OUTLINE_COLOR = "#111111"       # Klare schwarze Outlines
+
+
 
 def apply_plotly_styles(fig):
     """
@@ -107,16 +113,36 @@ def main_app_auswertung():
 
     with col_d1:
         donut_percent = percent_done
-        fig_donut1 = go.Figure(go.Pie(values=[donut_percent, 100 - donut_percent], hole=0.7,
-                                     marker_colors=[PLOT_HIGHLIGHT_COLOR, PLOT_SECONDARY_COLOR],
-                                     marker_line_color=PLOT_OUTLINE_COLOR, marker_line_width=3,
-                                     textinfo='none', sort=False))
-        fig_donut1.update_layout(showlegend=False, margin=dict(t=10, b=10, l=10, r=10), height=250,
-                                 annotations=[dict(text=f"<b>{donut_percent:.0f}%</b>", x=0.5, y=0.5,
-                                                 font_size=36, showarrow=False, font_color=PLOT_TEXT_COLOR,
-                                                 font_family='Oswald')])
-        st.markdown("##### Geschafft", unsafe_allow_html=True)
-        st.plotly_chart(apply_plotly_styles(fig_donut1), use_container_width=True)
+
+        # ✅ Grün = geschafft, ✅ Pink = offen (statt Cyan)
+        fig_donut1 = go.Figure(go.Pie(
+            values=[donut_percent, 100 - donut_percent],
+            hole=0.7,
+            marker_colors=[PLOT_SECONDARY_COLOR, PLOT_NEGATIVE_COLOR],
+            marker_line_color=PLOT_OUTLINE_COLOR,
+            marker_line_width=3,
+            textinfo='none',
+            sort=False
+        ))
+
+        fig_donut1.update_layout(
+            showlegend=False,
+            margin=dict(t=10, b=10, l=10, r=10),
+            height=250,
+            # ✅ Prozent-Anzeige in CYAN (Hauptfarbe sichtbar!)
+            annotations=[dict(
+                text=f"<b style='color:{PLOT_HIGHLIGHT_COLOR}'>{donut_percent:.0f}%</b>",
+                x=0.5,
+                y=0.5,
+                font_size=36,
+                showarrow=False,
+                font_family='Oswald'
+            )]
+        )
+
+    st.markdown("##### Geschafft", unsafe_allow_html=True)
+    st.plotly_chart(apply_plotly_styles(fig_donut1), use_container_width=True)
+
 
     with col_d2:
         last_years = sorted(ascents['datum'].dt.year.dropna().unique().astype(int).tolist(), reverse=True)[:3]
@@ -196,7 +222,12 @@ def main_app_auswertung():
 
             fig_partner_bar = px.bar(partner_counts, x='Anzahl', y='Partner*in', orientation='h', title='Häufigkeit der Kletterpartner*innen')
             
-            bar_colors = [PLOT_HIGHLIGHT_COLOR if p == most_frequent_partner['Partner*in'] else PLOT_SECONDARY_COLOR for p in partner_counts['Partner*in']]
+            #bar_colors = [PLOT_HIGHLIGHT_COLOR if p == most_frequent_partner['Partner*in'] else PLOT_SECONDARY_COLOR for p in partner_counts['Partner*in']]
+            bar_colors = [
+                PLOT_HIGHLIGHT_COLOR if row['Partner*in'] == most_frequent_partner['Partner*in']
+                else (PLOT_NEGATIVE_COLOR if row['Anzahl'] <= 1 else PLOT_SECONDARY_COLOR)
+                for _, row in partner_counts.iterrows()
+            ]
             fig_partner_bar.update_traces(marker_color=bar_colors, marker_line_color=PLOT_OUTLINE_COLOR, marker_line_width=3,
                                              text=partner_counts['Anzahl'], textposition='outside',
                                              textfont=dict(family='Noto Sans', size=20, color=PLOT_TEXT_COLOR))
@@ -219,7 +250,13 @@ def main_app_auswertung():
             
             most_frequent_stil = stil_counts.index[0]
 
-            pie_colors = [PLOT_HIGHLIGHT_COLOR if s == most_frequent_stil else PLOT_SECONDARY_COLOR for s in stil_counts.index]
+           
+            pie_colors = [
+                 PLOT_HIGHLIGHT_COLOR if s == most_frequent_stil
+                 else (PLOT_NEGATIVE_COLOR if str(s).lower() in ['abbruch', 'fehler', 'abgebrochen'] else PLOT_SECONDARY_COLOR)
+                 for s in stil_counts.index
+            ]
+
 
             fig_pie = go.Figure(data=[go.Pie(labels=stil_counts.index, values=stil_counts.values, hole=0.4, textinfo='label+percent',
                                              marker=dict(colors=pie_colors,
@@ -233,42 +270,60 @@ def main_app_auswertung():
             st.info("Nicht genügend Daten oder 'stil'-Spalte fehlt für die Stil-Statistik.")
 
 
-    # Überschrift "Übersicht pro Gebiet" jetzt mit div-Tag
-    st.markdown('<div class="headline-fonts">Übersicht pro Gebiet</div>', unsafe_allow_html=True) # headline-fonts nutzt jetzt Oswald
+    # Überschrift "Übersicht pro Gebiet"
+    st.markdown('<div class="headline-fonts">Übersicht pro Gebiet</div>', unsafe_allow_html=True)
+
     rocks['done'] = rocks['id'].isin(unique_done_rocks)
     sector_stats = rocks.groupby('sector_id')['done'].agg(['sum', 'count']).reset_index()
     sector_stats = sector_stats.merge(sectors, left_on='sector_id', right_on='id', how='left')
     sector_stats.rename(columns={'sum': 'begangen', 'count': 'gesamt', 'name': 'Gebiet'}, inplace=True)
-    
+
+    # Sortieren nach Fortschritt
     sector_stats = sector_stats.sort_values("begangen", ascending=True)
 
     fig_bar = go.Figure()
 
-    if not sector_stats.empty:
-        max_begangen_gebiet = sector_stats.loc[sector_stats['begangen'].idxmax()]
-    else:
-        max_begangen_gebiet = None
+    for _, row in sector_stats.iterrows():
+        begangen = int(row['begangen'])
+        gesamt = int(row['gesamt'])
+        offen = gesamt - begangen  # ✅ DAS WIRD PINK
 
-    for i, row in sector_stats.iterrows():
-        fig_bar.add_trace(go.Bar(y=[row['Gebiet']], x=[row['gesamt']], name='Gesamt', orientation='h',
-                                     marker_color=PLOT_SECONDARY_COLOR, marker_line_color=PLOT_OUTLINE_COLOR, marker_line_width=3))
+        # ✅ Grün = geschafft
+        fig_bar.add_trace(go.Bar(
+            y=[row['Gebiet']],
+            x=[begangen],
+            name='Begangen',
+            orientation='h',
+            marker_color=PLOT_SECONDARY_COLOR,
+            marker_line_color=PLOT_OUTLINE_COLOR,
+            marker_line_width=3
+        ))
 
-        bar_color_begangen = PLOT_HIGHLIGHT_COLOR if max_begangen_gebiet is not None and row['Gebiet'] == max_begangen_gebiet['Gebiet'] else PLOT_OUTLINE_COLOR
-        fig_bar.add_trace(go.Bar(y=[row['Gebiet']], x=[row['begangen']], name='Begangen', orientation='h',
-                                     marker_color=bar_color_begangen, marker_line_color=PLOT_OUTLINE_COLOR, marker_line_width=3))
+        # ✅ Pink = fehlt noch
+        fig_bar.add_trace(go.Bar(
+            y=[row['Gebiet']],
+            x=[offen],
+            name='Offen',
+            orientation='h',
+            marker_color=PLOT_NEGATIVE_COLOR,
+            marker_line_color=PLOT_OUTLINE_COLOR,
+            marker_line_width=3
+        ))
 
     fig_bar.update_layout(
-        barmode='overlay',
-        title='Felsen pro Gebiet (Petrol = Top-Gebiet, Dunkelgrau = begangen)',
+        barmode='stack',  # ✅ WICHTIG: stack statt overlay
+        title='Felsen pro Gebiet (Grün = geschafft, Pink = offen)',
         title_font=dict(color=PLOT_TEXT_COLOR, family='Noto Sans', size=24),
         xaxis_title='Anzahl Felsen',
         yaxis_title='',
         height=600,
         showlegend=False,
         yaxis=dict(tickfont=dict(color=PLOT_TEXT_COLOR, family='Noto Sans')),
-        xaxis=dict(tickfont=dict(color=PLOT_TEXT_COLOR, family='Noto Sans')),
+        xaxis=dict(tickfont=dict(color=PLOT_TEXT_COLOR, family='Noto Sans'))
     )
+
     st.plotly_chart(apply_plotly_styles(fig_bar), use_container_width=True)
+
 
  # Überschrift "Entwicklung der Begehungen: Vor- und Nachstieg" jetzt mit div-Tag
     st.markdown('<div class="headline-fonts">Entwicklung der Begehungen: Vor- und Nachstieg</div>', unsafe_allow_html=True) # headline-fonts nutzt jetzt Oswald

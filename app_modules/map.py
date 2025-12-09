@@ -15,7 +15,7 @@ supabase: Client = create_client(SUPABASE_URL, SUPABASE_KEY)
 
 # --- FARBKONZEPT KONSTANTEN (Dupliziert aus app_modules/auswertung.py zur Konsistenz) ---
 # Idealerweise wären diese in einer zentralen Konfigurationsdatei.
-PLOT_BG_COLOR = "#FFEF16"         # Hellgelb
+PLOT_BG_COLOR = "#FFFFFF"         # Weiss
 PLOT_HIGHLIGHT_COLOR = "#006D77"  # Petrol (Hauptfarbe, z.B. für Vorstieg / begangene Gipfel)
 PLOT_SECONDARY_COLOR = "#83C5BE"  # Helles Petrol (für Nachstieg und sekundäre Elemente / allgemeine Gipfel)
 PLOT_TEXT_COLOR = "#1D1D1D"       # Dunkelgrau

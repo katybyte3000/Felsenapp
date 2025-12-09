@@ -33,25 +33,37 @@ else:
         st.error(f"FEHLER: Verbindung zur Supabase-Datenbank fehlgeschlagen: {e}")
         st.info("Bitte überprüfen Sie Ihre Internetverbindung und die Supabase-Konfiguration.")
 
-# --- NEUE FARBKONZEPT KONSTANTEN (Global für CSS) ---
-# DIESE KONSTANTEN WURDEN HIERHER VERSCHOBEN, DAMIT SIE VOR display_random_comment DEFINIERT SIND
-BG_COLOR = "#FFEF16"        # Dein lebendiges Gelb
-HIGHLIGHT_COLOR = "#006D77" # Petrol
-POSITIVE_COLOR = "#3BB277"  # Grün
-NEGATIVE_COLOR = "#8E44AD"  # Lila
-SECONDARY_COLOR = "#83C5BE" # Helles Petrol
-TEXT_COLOR = "#1D1D1D"      # Dunkelgrau
-PLOT_OUTLINE_COLOR = "#1D1D1D"     # Dunkelgrau (für Plotly-Element-Outlines)
+
+# --- ✅ FERTIGES UX-FARBSCHEMA (WCAG + Hover optimiert) ---
+
+# === MARKENFARBEN ===
+PRIMARY_COLOR = "#359bca"     # Primärakzent – Cyan
+SECONDARY_COLOR = "#9bca35"   # Sekundärakzent – Limette
+NEGATIVE_COLOR = "#ca359b"    # Negativ/Kritisch – Magenta
+BG_COLOR = "#F7F7F7"          # Neutraler Hintergrund – Hellgrau
+
+# === ABGELEITETE KONTRASTE & HOVER ===
+PRIMARY_HOVER = "#2d86b0"     # Dunkleres Cyan für Hover
+SECONDARY_HOVER = "#7ea928"   # Dunkleres Limette für Hover
+NEGATIVE_HOVER = "#a82d7f"    # Dunkleres Magenta für Hover
+
+# === TEXT & OUTLINES (WCAG-KONTRAST) ===
+TEXT_COLOR = "#111111"        # Extra hoher Kontrast auf Hellgrau
+TEXT_MUTED = "#4D4D4D"        # Für Secondary Text
+PLOT_OUTLINE_COLOR = "#111111"
+
+# === RÜCKWÄRTS-KOMPATIBEL FÜR DEIN BESTEHENDES CSS ===
+HIGHLIGHT_COLOR = PRIMARY_COLOR
 
 
 # --- Globale Seitenkonfiguration und CSS Styling ---
 st.set_page_config(page_title="Felsenapp", layout="wide")
 
+
 st.markdown(f"""
 <style>
-/* Import Google Fonts */
+/* === Google Fonts laden === */
 @import url('https://fonts.googleapis.com/css2?family=Oswald:wght@700&family=Noto+Sans:wght@400;700&display=swap');
-@import url('https://fonts.googleapis.com/css2?family=Lacquer&display=swap');
 
 /* === Gesamtseiten-Hintergrund === */
 .stApp {{
@@ -60,19 +72,19 @@ st.markdown(f"""
 
 /* === Headlines in Oswald === */
 h1, h2, h3, .stTitle, .stMarkdown h1, .stMarkdown h2, .stMarkdown h3,
-.headline-fonts, [data-testid="stMetricValue"], .st-emotion-cache-10q20n3 h1 {{
+.headline-fonts, [data-testid="stMetricValue"] {{
     font-family: 'Oswald', sans-serif !important;
-    color: {TEXT_COLOR};
+    color: {TEXT_COLOR} !important;
     font-weight: 700 !important;
 }}
 
 /* === Fließtext in Noto Sans Bold === */
-html, body, .stMarkdown p, .stText, .stDataFrame, .css-18ni7ap,
+html, body, .stMarkdown p, .stText, .stDataFrame, 
 .st-emotion-cache-nahz7x, .st-emotion-cache-l9bibm, .st-emotion-cache-1ftrzg7,
 [data-testid="stMetricLabel"] {{
     font-family: 'Noto Sans', sans-serif !important;
     font-weight: 700 !important;
-    color: {TEXT_COLOR};
+    color: {TEXT_COLOR} !important;
 }}
 
 /* === Buttons im Highlight-Stil === */
@@ -94,40 +106,33 @@ html, body, .stMarkdown p, .stText, .stDataFrame, .css-18ni7ap,
     transition: background-color 0.3s ease-in-out, box-shadow 0.1s ease-in-out;
 }}
 
-/* === Allgemeine Streamlit-Elemente (Container, Inputs) mit Outlines === */
-.st-emotion-cache-1ftrzg7,
-.st-emotion-cache-nahz7x,
-.st-emotion-cache-l9bibm {{
-    border: 3px solid {HIGHLIGHT_COLOR} !important;
-    border-radius: 8px;
-    box-shadow: 6px 6px 0px 0px rgba(0,0,0,0.75);
-    padding: 10px;
-    margin-bottom: 15px;
-}}
-
-/* Für Inputs, Textbereiche */
-.stTextInput > div > div > input,
-.stTextArea > div > textarea {{
+/* === Inputs, Textareas, Selectboxen === */
+.stTextInput input,
+.stTextArea textarea,
+.stSelectbox select {{
     border: 3px solid {HIGHLIGHT_COLOR} !important;
     border-radius: 8px;
     box-shadow: 2px 2px 0px 0px rgba(0,0,0,0.75);
     padding: 8px;
     font-family: 'Noto Sans', sans-serif !important;
     font-weight: 700 !important;
-    color: {TEXT_COLOR};
+    color: {TEXT_COLOR} !important;
+    background-color: #FFFFFF !important;
+}}
+/* Radio Buttons normal */
+.stRadio label, 
+.stRadio div[data-baseweb="radio"] label {{
+    color: black !important;          /* Textfarbe */
+    background-color: transparent !important;  /* Kein Hintergrund */
 }}
 
-/* Für Selectboxen/Dropdowns */
-.stSelectbox > div > div {{
-    border: 3px solid {HIGHLIGHT_COLOR} !important;
-    border-radius: 8px;
-    box-shadow: 2px 2px 0px 0px rgba(0,0,0,0.75);
-    font-family: 'Noto Sans', sans-serif !important;
-    font-weight: 700 !important;
-    color: {TEXT_COLOR};
+/* Hover-Effekt entfernen */
+.stRadio div[data-baseweb="radio"]:hover label {{
+    background-color: transparent !important; /* Kein Hover-Hintergrund */
 }}
 
-/* Anpassung der Metric-Werte - jetzt auch Oswald */
+
+/* === Metric-Werte / Labels === */
 [data-testid="stMetricValue"] {{
     font-family: 'Oswald', sans-serif !important;
     font-weight: 700 !important;
@@ -140,45 +145,50 @@ html, body, .stMarkdown p, .stText, .stDataFrame, .css-18ni7ap,
     color: {TEXT_COLOR} !important;
 }}
 
-/* Sidebar Header / Navigation */
-.st-emotion-cache-10q20n3 {{
-    background-color: {HIGHLIGHT_COLOR};
-    color: white;
-}}
-.st-emotion-cache-10q20n3 h1, .st-emotion-cache-10q20n3 h2, .st-emotion-cache-10q20n3 h3, .st-emotion-cache-10q20n3 h4, .st-emotion-cache-10q20n3 h5, .st-emotion-cache-10q20n3 h6 {{
-    color: white;
-    font-family: 'Oswald', sans-serif !important;
-}}
-.st-emotion-cache-1r6dm1b {{
-    background-color: {HIGHLIGHT_COLOR};
-    border-radius: 8px;
-    padding: 10px;
-    margin-bottom: 10px;
-}}
-.st-emotion-cache-1r6dm1b .stButton>button {{
-    background-color: white !important;
-    color: {HIGHLIGHT_COLOR} !important;
-    border: 2px solid {HIGHLIGHT_COLOR} !important;
-    box-shadow: none;
-}}
-.st-emotion-cache-1r6dm1b .stButton>button:hover {{
-    background-color: {SECONDARY_COLOR} !important;
-    color: white !important;
-    border: 2px solid {HIGHLIGHT_COLOR} !important;
+/* === Sidebar Hintergrund + Textfarben === */
+[data-testid="stSidebar"] {{
+    background-color: {BG_COLOR} !important;
+    color: {TEXT_COLOR} !important;
 }}
 
-/* Allgemeine Plotly-Achsentitel und -Labels (als Fallback) */
+/* Sidebar Header / Navigation */
+.st-emotion-cache-10q20n3 {{
+    background-color: {HIGHLIGHT_COLOR} !important;
+    color: white !important;
+}}
+.st-emotion-cache-10q20n3 h1, .st-emotion-cache-10q20n3 h2, 
+.st-emotion-cache-10q20n3 h3, .st-emotion-cache-10q20n3 h4, 
+.st-emotion-cache-10q20n3 h5, .st-emotion-cache-10q20n3 h6 {{
+    color: white !important;
+    font-family: 'Oswald', sans-serif !important;
+}}
+
+/* Sidebar Buttons */
+[data-testid="stSidebar"] button {{
+    background-color: {HIGHLIGHT_COLOR} !important;
+    color: white !important;
+    border: 2px solid {HIGHLIGHT_COLOR} !important;
+    border-radius: 6px;
+}}
+
+/* Sidebar Buttons Hover */
+[data-testid="stSidebar"] button:hover {{
+    background-color: {SECONDARY_COLOR} !important;
+    color: white !important;
+}}
+
+/* Plotly / Diagramme */
 .modebar, .g-gtitle {{
     font-family: 'Noto Sans', sans-serif !important;
     font-weight: 700 !important;
     color: {TEXT_COLOR} !important;
 }}
 
-/* Spezifischer Stil für Haupt-Überschriften (via headline-fonts Div) */
+/* Spezifischer Stil für Haupt-Überschriften */
 .headline-fonts {{
     font-family: 'Oswald', sans-serif !important;
     font-size: 3em !important;
-    color: {TEXT_COLOR};
+    color: {TEXT_COLOR} !important;
     text-shadow: none;
     text-transform: none;
     line-height: 1.2;
@@ -186,16 +196,16 @@ html, body, .stMarkdown p, .stText, .stDataFrame, .css-18ni7ap,
     margin-bottom: 0.5em;
 }}
 
-/* Stil für hervorgehobene Zahlen/Werte im Fließtext (unverändert) */
+/* Hervorgehobene Zahlen/Werte im Fließtext */
 .highlight-number {{
     font-family: 'Noto Sans', sans-serif !important;
     font-size: 1.2em !important;
     font-weight: 700 !important;
-    color: {HIGHLIGHT_COLOR};
+    color: {HIGHLIGHT_COLOR} !important;
 }}
-
 </style>
 """, unsafe_allow_html=True)
+
 
 
 # --- NEUE FUNKTION: Zufälligen Kommentar anzeigen ---
@@ -204,7 +214,7 @@ def display_random_comment(supabase_client: Client, user_id: str):
     Holt einen zufälligen Kommentar des Benutzers zusammen mit Gipfelname und Datum
     und zeigt ihn in einem formatierten Kasten an.
     """
-    # Überschrift "Zitat" in HIGHLIGHT_COLOR (Petrol)
+    # Überschrift "Zitat" in HIGHLIGHT_COLOR 
     st.markdown(f'<div class="headline-fonts" style="font-size: 16px; color: {HIGHLIGHT_COLOR};">Zitat</div>', unsafe_allow_html=True)
 
     # --- KONFIGURIERE DEN KOMMENTAR-SPALTENNAMEN HIER ---
