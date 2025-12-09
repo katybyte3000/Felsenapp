@@ -78,6 +78,13 @@ h1, h2, h3, .stTitle, .stMarkdown h1, .stMarkdown h2, .stMarkdown h3,
     font-weight: 700 !important;
 }}
 
+
+/* Metric-Werte / Labels */
+[data-testid="stMetricValue"], [data-testid="stMetricLabel"] {
+    color: #111111 !important;
+}
+</style>
+
 /* === Fließtext in Noto Sans Bold === */
 html, body, .stMarkdown p, .stText, .stDataFrame, 
 .st-emotion-cache-nahz7x, .st-emotion-cache-l9bibm, .st-emotion-cache-1ftrzg7,

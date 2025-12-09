@@ -93,55 +93,50 @@ def show_filter_map_page(supabase_client: Client):
     # --- ✅ CSS für Sidebar-Widgets und Lesbarkeit ---
     st.markdown(f"""
     <style>
-    /* Sidebar Hintergrund */
-    [data-testid="stSidebar"] {{
-        background-color: {PLOT_BG_COLOR} !important;
-        color: {PLOT_TEXT_COLOR} !important;
-    }}
+    /* === Sidebar Hintergrund + Textfarben === */
+[data-testid="stSidebar"] {{
+    background-color: #6C8EBF !important;  /* helles Blau-Grau */
+    color: #FFFFFF !important;
+}}
 
-      /* Sidebar Hintergrund + Textfarben */
-    [data-testid="stSidebar"] {{
-        background-color: #333333 !important;  /* Lila Hintergrund */
-        color: white !important;               /* Weißer Text */
-    }}
+/* Sidebar Überschriften / Titel */
+[data-testid="stSidebar"] h1,
+[data-testid="stSidebar"] h2,
+[data-testid="stSidebar"] h3,
+[data-testid="stSidebar"] h4,
+[data-testid="stSidebar"] h5,
+[data-testid="stSidebar"] h6 {{
+    color: #FFFFFF !important;
+    font-family: 'Oswald', sans-serif !important;
+    font-weight: 700 !important;
+}}
 
-    /* Sidebar Header / Navigation */
-    .st-emotion-cache-10q20n3 {{
-        background-color: #6600CC !important;  /* Dunkleres Lila für Header */
-        color: white !important;
-    }}
-    .st-emotion-cache-10q20n3 h1, .st-emotion-cache-10q20n3 h2, 
-    .st-emotion-cache-10q20n3 h3, .st-emotion-cache-10q20n3 h4, 
-    .st-emotion-cache-10q20n3 h5, .st-emotion-cache-10q20n3 h6 {{
-        color: white !important;
-        font-family: 'Oswald', sans-serif !important;
-    }}
+/* Sidebar Labels, Checkboxen, Radio Buttons */
+[data-testid="stSidebar"] label,
+[data-testid="stSidebar"] .stCheckbox label,
+[data-testid="stSidebar"] .stRadio label {{
+    color: #FFFFFF !important;
+    font-family: 'Noto Sans', sans-serif !important;
+    font-weight: 700 !important;
+}}
 
-    /* Sidebar Titel */
-    [data-testid="stSidebar"] h2, 
-    [data-testid="stSidebar"] h3 {{
-        color: {PLOT_TEXT_COLOR} !important;
-        font-family: 'Noto Sans', sans-serif !important;
-        font-weight: 700 !important;
-    }}
+/* Sidebar Radio Button Hover (nur Hintergrund) */
+[data-testid="stSidebar"] .stRadio div[data-baseweb="radio"]:hover label {{
+    background-color: #5A7DA3 !important;
+}}
 
-    /* Radio Buttons Text in Sidebar */
-    [data-testid="stSidebar"] .stRadio div[role="radiogroup"] label,
-    [data-testid="stSidebar"] .stCheckbox label,
-    [data-testid="stSidebar"] .stSelectbox label,
-    [data-testid="stSidebar"] .stSlider label {{
-        color: {PLOT_TEXT_COLOR} !important;
-        font-family: 'Noto Sans', sans-serif !important;
-        font-weight: 700 !important;
-    }}
+/* Sidebar Buttons */
+[data-testid="stSidebar"] button {{
+    background-color: #5A7DA3 !important;
+    color: #FFFFFF !important;
+    border: 2px solid #5A7DA3 !important;
+    border-radius: 6px;
+}}
 
-    /* Hover Effekte */
-    [data-testid="stSidebar"] .stRadio div[role="radiogroup"] label:hover,
-    [data-testid="stSidebar"] .stCheckbox label:hover,
-    [data-testid="stSidebar"] .stSelectbox label:hover,
-    [data-testid="stSidebar"] .stSlider label:hover {{
-        color: {PLOT_HIGHLIGHT_COLOR} !important;
-    }}
+[data-testid="stSidebar"] button:hover {{
+    background-color: #4A6A8C !important;
+    color: #FFFFFF !important;
+}}
     </style>
     """, unsafe_allow_html=True)
 
