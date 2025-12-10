@@ -154,15 +154,14 @@ html, body, .stMarkdown p, .stText, .stDataFrame,
 }}
 
 /* === Sidebar Hintergrund + Textfarben === */
-/*[data-testid="stSidebar"] {{*/
-    /*background-color: {BG_COLOR} !important;*/
-   /* color: {TEXT_COLOR} !important;*/
-/*}} */
+[data-testid="stSidebar"] {{
+    /*background-color: {BG_COLOR} !important;
+   /* color: {TEXT_COLOR} !important;
+}} 
 
-[data-testid="stSidebar"] button:hover {{
-    background-color: #EBEBEB !important;
-    color: #FFFFFF !important;
-}}
+
+
+
 
 
 /* Sidebar Header / Navigation */

@@ -21,6 +21,62 @@ PLOT_MUTED_TEXT = "#4D4D4D"          # Gedämpfter Text (optional)
 PLOT_OUTLINE_COLOR = "#111111"       # Klare schwarze Outlines
 
 
+
+
+    # --- ✅ CSS für Sidebar-Widgets und Lesbarkeit ---
+st.markdown(f"""
+    <style>
+    /* === Sidebar Hintergrund + Textfarben === */
+            
+[data-testid="stSidebar"] {{
+    background-color: #f8f8ff !important;  /* helles Grau */
+    color: #FFFFFF !important;
+}}
+
+            
+            
+/* Sidebar Überschriften / Titel */
+[data-testid="stSidebar"] h1,
+[data-testid="stSidebar"] h2,
+[data-testid="stSidebar"] h3,
+[data-testid="stSidebar"] h4,
+[data-testid="stSidebar"] h5,
+[data-testid="stSidebar"] h6 {{
+    color: #FFFFFF !important;
+    font-family: 'Oswald', sans-serif !important;
+    font-weight: 700 !important;
+}}
+
+/* Sidebar Labels, Checkboxen, Radio Buttons */
+[data-testid="stSidebar"] label,
+[data-testid="stSidebar"] .stCheckbox label,
+[data-testid="stSidebar"] .stRadio label {{
+    color: #FFFFFF !important;
+    font-family: 'Noto Sans', sans-serif !important;
+    font-weight: 700 !important;
+}}
+
+/* Sidebar Radio Button Hover (nur Hintergrund) */
+[data-testid="stSidebar"] .stRadio div[data-baseweb="radio"]:hover label {{
+    background-color: #5A7DA3 !important;
+}}
+
+/* Sidebar Buttons */
+[data-testid="stSidebar"] button {{
+    background-color: #5A7DA3 !important;
+    color: #FFFFFF !important;
+    border: 2px solid #5A7DA3 !important;
+    border-radius: 6px;
+}}
+
+[data-testid="stSidebar"] button:hover {{
+    background-color: #EBEBEB !important;
+    color: #FFFFFF !important;
+}}
+    </style>
+    """, unsafe_allow_html=True)
+
+
 def make_triangle(lat, lon, size=0.001):
     if pd.isna(lat) or pd.isna(lon) or pd.isna(size) or size <= 0:
         return None
@@ -90,55 +146,6 @@ def show_filter_map_page(supabase_client: Client):
         st.warning("Keine Felsen zum Anzeigen verfügbar. Überprüfen Sie Ihre Datenquelle.")
         return
 
-    # --- ✅ CSS für Sidebar-Widgets und Lesbarkeit ---
-    st.markdown(f"""
-    <style>
-    /* === Sidebar Hintergrund + Textfarben === */
-[data-testid="stSidebar"] {{
-    background-color: #a6a6a6 !important;  /* helles Blau-Grau */
-    color: #FFFFFF !important;
-}}
-
-/* Sidebar Überschriften / Titel */
-[data-testid="stSidebar"] h1,
-[data-testid="stSidebar"] h2,
-[data-testid="stSidebar"] h3,
-[data-testid="stSidebar"] h4,
-[data-testid="stSidebar"] h5,
-[data-testid="stSidebar"] h6 {{
-    color: #FFFFFF !important;
-    font-family: 'Oswald', sans-serif !important;
-    font-weight: 700 !important;
-}}
-
-/* Sidebar Labels, Checkboxen, Radio Buttons */
-[data-testid="stSidebar"] label,
-[data-testid="stSidebar"] .stCheckbox label,
-[data-testid="stSidebar"] .stRadio label {{
-    color: #FFFFFF !important;
-    font-family: 'Noto Sans', sans-serif !important;
-    font-weight: 700 !important;
-}}
-
-/* Sidebar Radio Button Hover (nur Hintergrund) */
-[data-testid="stSidebar"] .stRadio div[data-baseweb="radio"]:hover label {{
-    background-color: #5A7DA3 !important;
-}}
-
-/* Sidebar Buttons */
-[data-testid="stSidebar"] button {{
-    background-color: #5A7DA3 !important;
-    color: #FFFFFF !important;
-    border: 2px solid #5A7DA3 !important;
-    border-radius: 6px;
-}}
-
-[data-testid="stSidebar"] button:hover {{
-    background-color: #EBEBEB !important;
-    color: #FFFFFF !important;
-}}
-    </style>
-    """, unsafe_allow_html=True)
 
     # --- Sidebar Widgets ---
     st.sidebar.title("Filter")
