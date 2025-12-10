@@ -146,6 +146,7 @@ html, body, .stMarkdown p, .stText, .stDataFrame,
     font-size: 3em !important;
     color: {HIGHLIGHT_COLOR} !important;
 }}
+
 [data-testid="stMetricLabel"] {{
     font-family: 'Noto Sans', sans-serif !important;
     font-weight: 700 !important;
@@ -162,10 +163,6 @@ html, body, .stMarkdown p, .stText, .stDataFrame,
     background-color: #EBEBEB !important;
     color: #FFFFFF !important;
 }}
-
-
-
-
 
 
 /* Sidebar Header / Navigation */
