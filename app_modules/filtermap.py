@@ -134,7 +134,7 @@ def show_filter_map_page(supabase_client: Client):
 }}
 
 [data-testid="stSidebar"] button:hover {{
-    background-color: #4A6A8C !important;
+    background-color: #EBEBEB !important;
     color: #FFFFFF !important;
 }}
     </style>

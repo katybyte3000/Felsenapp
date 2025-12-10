@@ -83,7 +83,7 @@ h1, h2, h3, .stTitle, .stMarkdown h1, .stMarkdown h2, .stMarkdown h3,
 [data-testid="stMetricValue"], [data-testid="stMetricLabel"] {{
     color: #111111 !important;
 }}
-</style>
+
 
 /* === Fließtext in Noto Sans Bold === */
 html, body, .stMarkdown p, .stText, .stDataFrame, 
@@ -153,10 +153,20 @@ html, body, .stMarkdown p, .stText, .stDataFrame,
 }}
 
 /* === Sidebar Hintergrund + Textfarben === */
-[data-testid="stSidebar"] {{
-    background-color: {BG_COLOR} !important;
-    color: {TEXT_COLOR} !important;
+/*[data-testid="stSidebar"] {{*/
+    /*background-color: {BG_COLOR} !important;*/
+   /* color: {TEXT_COLOR} !important;*/
+/*}} */
+
+[data-testid="stSidebar"] button:hover {{
+    background-color: #EBEBEB !important;
+    color: #FFFFFF !important;
 }}
+
+
+
+
+
 
 /* Sidebar Header / Navigation */
 .st-emotion-cache-10q20n3 {{
